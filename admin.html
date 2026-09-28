@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Event Passport · Admin</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .auth { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--brand); }
+  .auth .card { width: min(420px, 100%); padding: 28px; }
+  .auth h1 { font-size: 1.4rem; }
+  .brandmark { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--brand); margin-bottom: 18px; }
+  .brandmark i { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; color: #fff; font-style: normal; font-size: 16px; }
+
+  .topbar { background: var(--brand); color: #fff; padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; position: sticky; top: 0; z-index: 50; }
+  .topbar .brandmark { color: #fff; margin: 0; }
+  .topbar select { width: auto; min-width: 200px; max-width: 100%; padding: 8px 10px; background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.25); }
+  .topbar select option { color: var(--ink); }
+  .topbar .btn.ghost { color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35); }
+  .topbar .who { margin-left: auto; font-size: .85rem; opacity: .85; }
+
+  .shell { display: grid; grid-template-columns: 210px 1fr; min-height: calc(100vh - 58px); }
+  nav.side { background: #fff; border-right: 1px solid var(--line); padding: 14px 10px; }
+  nav.side button { display: flex; width: 100%; align-items: center; gap: 10px; background: none; border: 0; text-align: left; padding: 10px 12px; border-radius: 9px;
+    font: 600 .95rem var(--font); color: var(--muted); cursor: pointer; margin-bottom: 2px; }
+  nav.side button:hover { background: var(--bg); color: var(--ink); }
+  nav.side button[aria-current=page] { background: color-mix(in srgb, var(--brand) 10%, #fff); color: var(--brand); }
+  .content { padding: 22px; max-width: 1180px; width: 100%; }
+  .pagehead { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .pagehead h1 { font-size: 1.45rem; margin: 0; }
+  .pagehead .actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi b { display: block; font-size: 2rem; font-weight: 800; color: var(--brand); line-height: 1.1; }
+  .kpi span { font-size: .8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .hbar { display: grid; grid-template-columns: minmax(120px, 220px) 1fr 44px; gap: 10px; align-items: center; margin: 8px 0; font-size: .9rem; }
+  .hbar .t { height: 12px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .hbar .t i { display: block; height: 100%; background: var(--brand); border-radius: 99px; }
+  .hbar .n { text-align: right; font-weight: 700; }
+  .grid2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+
+  .thumb { width: 44px; height: 44px; border-radius: 50%; object-fit: contain; background: #fff; border: 1px solid var(--line); padding: 4px; }
+  .thumb.logo-ph { padding: 0; font-size: .85rem; }
+  .logo-edit { display: flex; gap: 14px; align-items: center; }
+  .logo-edit .prev { width: 84px; height: 84px; border-radius: 50%; border: 1.5px dashed var(--line); display: grid; place-items: center; overflow: hidden; background: #fff; flex: none; }
+  .logo-edit .prev img { width: 78%; height: 78%; object-fit: contain; }
+  .logo-edit.rect .prev { border-radius: 10px; width: 150px; }
+  .qrbox { background: #fff; padding: 12px; border-radius: 12px; border: 1px solid var(--line); width: 220px; margin: 0 auto; }
+  .qrbox svg { width: 100%; height: auto; display: block; }
+  .code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .85rem; background: var(--bg); padding: 2px 6px; border-radius: 6px; word-break: break-all; }
+  .stamp-toggles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; max-height: 260px; overflow: auto; padding: 4px; }
+  .stamp-toggles label { font-weight: 500; display: flex; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; background: var(--bg); margin: 0; font-size: .88rem; }
+  .empty { text-align: center; padding: 36px 16px; color: var(--muted); }
+  .colorpair { display: flex; gap: 10px; }
+  .colorpair input[type=color] { width: 54px; height: 44px; padding: 3px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; }
+  .section-title { font-size: 1rem; margin: 22px 0 10px; padding-top: 16px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    nav.side { display: flex; overflow-x: auto; gap: 4px; padding: 8px; border-right: 0; border-bottom: 1px solid var(--line); position: sticky; top: 58px; z-index: 40; }
+    nav.side button { width: auto; white-space: nowrap; margin: 0; }
+    .content { padding: 16px; }
+    .grid2 { grid-template-columns: 1fr; }
+    .topbar .who { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== sign-in ===== -->
+<div id="authView" class="auth hidden">
+  <div class="card">
+    <div class="brandmark"><i>✓</i>Event Passport</div>
+    <div id="signInBox">
+      <h1>Admin sign in</h1>
+      <form id="signInForm">
+        <div class="field"><label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="username" required></div>
+        <div class="field"><label for="aPass">Password</label><input id="aPass" type="password" autocomplete="current-password" required></div>
+        <button class="btn block" type="submit">Sign in</button>
+      </form>
+      <p class="small" style="margin-top:14px;display:flex;justify-content:space-between">
+        <button class="linkbtn" id="toSignUp" type="button">Create an admin account</button>
+        <button class="linkbtn" id="forgot" type="button">Forgot password?</button></p>
+    </div>
+    <div id="signUpBox" class="hidden">
+      <h1>Create admin account</h1>
+      <p class="muted small">Use the email address an existing admin invited. (The very first account created becomes the owner.)</p>
+      <form id="signUpForm">
+        <div class="field"><label for="uEmail">Email</label><input id="uEmail" type="email" autocomplete="username" required></div>
+        <div class="field"><label for="uPass">Password</label><input id="uPass" type="password" autocomplete="new-password" minlength="8" required><div class="hint">At least 8 characters.</div></div>
+        <button class="btn block" type="submit">Create account</button>
+      </form>
+      <p class="small" style="margin-top:14px"><button class="linkbtn" id="toSignIn" type="button">Back to sign in</button></p>
+    </div>
+    <div id="resetBox" class="hidden">
+      <h1>Set a new password</h1>
+      <form id="resetForm">
+        <div class="field"><label for="nPass">New password</label><input id="nPass" type="password" autocomplete="new-password" minlength="8" required></div>
+        <button class="btn block" type="submit">Save password</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="notAdmin" class="auth hidden"><div class="card"><div class="brandmark"><i>✓</i>Event Passport</div>
+  <h1>No admin access yet</h1><p class="muted">You're signed in as <b id="naEmail"></b>, but this account isn't an admin. Ask an existing admin to add this email under Admin users, then refresh this page.</p>
+  <button class="btn" onclick="location.reload()" type="button">Refresh</button>
+  <button class="btn ghost" id="naOut" type="button">Sign out</button></div></div>
+
+<!-- ===== app ===== -->
+<div id="appView" class="hidden">
+  <header class="topbar">
+    <div class="brandmark"><i>✓</i>Passport Admin</div>
+    <select id="evSelect" aria-label="Current event"></select>
+    <button class="btn sm ghost" id="newEventBtn" type="button">+ New event</button>
+    <span class="who" id="who"></span>
+    <button class="btn sm ghost" id="signOutBtn" type="button">Sign out</button>
+  </header>
+  <div class="shell">
+    <nav class="side" id="nav">
+      <button data-page="dashboard" aria-current="page">📊 Dashboard</button>
+      <button data-page="booths">🏷️ Booths & QR codes</button>
+      <button data-page="attendees">👥 Attendees</button>
+      <button data-page="winners">🏆 Winners</button>
+      <button data-page="settings">⚙️ Event settings</button>
+      <button data-page="admins">🔐 Admin users</button>
+    </nav>
+    <main class="content" id="page"></main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script>
+(async function () {
+  const { sb, esc, logoUrl, initials, applyTheme, toast, joinUrl, boothUrl, qrSvg, qrDataUrl, fmtDate, appBaseUrl } = P;
+  const $ = (id) => document.getElementById(id);
+  let me = null, myRole = null, events = [], ev = null, page = "dashboard";
+
+  applyTheme(null);
+
+  // ---------- generic helpers ----------
+  function modal(html, opts = {}) {
+    const bg = document.createElement("div");
+    bg.className = "modal-bg";
+    bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true" style="${opts.wide ? "width:min(760px,100%)" : ""}">${html}</div>`;
+    document.body.appendChild(bg);
+    const close = () => bg.remove();
+    bg.addEventListener("click", (e) => { if (e.target === bg) close(); });
+    bg.querySelectorAll("[data-close]").forEach((b) => (b.onclick = close));
+    const f = bg.querySelector("input,select,textarea"); if (f) setTimeout(() => f.focus(), 30);
+    return { el: bg.querySelector(".modal"), close };
+  }
+  const val = (root, sel) => root.querySelector(sel).value.trim();
+  const slugify = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+  const randCode = () => Array.from(crypto.getRandomValues(new Uint8Array(9)), (b) => b.toString(16).padStart(2, "0")).join("");
+  const logoTag = (path, name, cls = "thumb") => path ? `<img class="${cls}" src="${logoUrl(path)}" alt="">` : `<div class="${cls} logo-ph" style="border-radius:50%">${esc(initials(name))}</div>`;
+  function fail(error, msg = "Something went wrong") { console.error(error); toast(`${msg}: ${error.message || error}`, "err"); }
+
+  async function uploadLogo(file, folder) {
+    if (!file) return null;
+    if (file.size > 2 * 1024 * 1024) { toast("Logo must be under 2 MB.", "err"); return null; }
+    const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await sb.storage.from("logos").upload(path, file, { contentType: file.type, upsert: false });
+    if (error) { fail(error, "Upload failed"); return null; }
+    return path;
+  }
+  async function removeLogo(path) { if (path) await sb.storage.from("logos").remove([path]); }
+
+  function wireLogoInput(root, current) {
+    const input = root.querySelector("input[type=file]"), prev = root.querySelector(".prev");
+    let removed = false;
+    input.onchange = () => {
+      const f = input.files[0];
+      if (f) { prev.innerHTML = `<img src="${URL.createObjectURL(f)}" alt="">`; removed = false; }
+    };
+    const rm = root.querySelector("[data-rmlogo]");
+    if (rm) rm.onclick = () => { input.value = ""; prev.innerHTML = '<span class="small muted">No logo</span>'; removed = true; };
+    return { file: () => input.files[0], removed: () => removed };
+  }
+  const logoField = (path, label, rect) => `<div class="field"><label>${label}</label><div class="logo-edit ${rect ? "rect" : ""}">
+    <div class="prev">${path ? `<img src="${logoUrl(path)}" alt="">` : '<span class="small muted">No logo</span>'}</div>
+    <div><input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif">
+    <div class="hint">PNG with transparent background works best. Square, max 2 MB.</div>
+    ${path ? '<button type="button" class="linkbtn small" data-rmlogo>Remove logo</button>' : ""}</div></div></div>`;
+
+  function downloadFile(name, content, type) {
+    const a = document.createElement("a");
+    a.href = typeof content === "string" && content.startsWith("data:") ? content : URL.createObjectURL(new Blob([content], { type }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  }
+  const csvCell = (v) => { v = String(v ?? ""); if (/^[=+\-@]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
+
+  // ---------- auth ----------
+  const showOnly = (id) => ["authView", "notAdmin", "appView"].forEach((v) => $(v).classList.toggle("hidden", v !== id));
+  const authPane = (id) => ["signInBox", "signUpBox", "resetBox"].forEach((v) => $(v).classList.toggle("hidden", v !== id));
+  $("toSignUp").onclick = () => authPane("signUpBox");
+  $("toSignIn").onclick = () => authPane("signInBox");
+
+  $("signInForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const { error } = await sb.auth.signInWithPassword({ email: $("aEmail").value.trim(), password: $("aPass").value });
+    if (error) toast(error.message, "err");
+  };
+  $("signUpForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const { data, error } = await sb.auth.signUp({ email: $("uEmail").value.trim(), password: $("uPass").value,
+      options: { emailRedirectTo: location.href.split("#")[0] } });
+    if (error) return toast(error.message, "err");
+    if (!data.session) { toast("Check your email to confirm your account, then sign in.", "ok"); authPane("signInBox"); }
+  };
+  $("forgot").onclick = async () => {
+    const email = $("aEmail").value.trim() || prompt("Your admin email:");
+    if (!email) return;
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split("#")[0] });
+    toast(error ? error.message : "If that account exists, a reset link is on its way.", error ? "err" : "ok");
+  };
+  $("resetForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const { error } = await sb.auth.updateUser({ password: $("nPass").value });
+    if (error) return toast(error.message, "err");
+    toast("Password updated.", "ok"); boot();
+  };
+  const signOut = async () => { await sb.auth.signOut(); location.reload(); };
+  $("signOutBtn").onclick = signOut; $("naOut").onclick = signOut;
+
+  let recovering = false;
+  sb.auth.onAuthStateChange((event) => {
+    if (event === "PASSWORD_RECOVERY") { recovering = true; showOnly("authView"); authPane("resetBox"); }
+    if (event === "SIGNED_IN" && !recovering && !me) boot();
+  });
+
+  async function boot() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { showOnly("authView"); authPane("signInBox"); return; }
+    if (recovering) return;
+    me = session.user;
+    const { data: adm } = await sb.from("admins").select("role").eq("user_id", me.id).maybeSingle();
+    if (!adm) { $("naEmail").textContent = me.email; showOnly("notAdmin"); return; }
+    myRole = adm.role;
+    $("who").textContent = me.email;
+    showOnly("appView");
+    await loadEvents();
+  }
+
+  // ---------- events ----------
+  async function loadEvents(selectId) {
+    const { data, error } = await sb.from("events").select("*").order("created_at", { ascending: false });
+    if (error) return fail(error);
+    events = data;
+    const want = selectId || localStorage.getItem("passport-admin-event");
+    ev = events.find((e) => e.id === want) || events[0] || null;
+    $("evSelect").innerHTML = events.map((e) => `<option value="${e.id}">${esc(e.name)}${e.is_active ? "" : " (inactive)"}</option>`).join("") || "<option>No events yet</option>";
+    if (ev) { $("evSelect").value = ev.id; localStorage.setItem("passport-admin-event", ev.id); }
+    applyTheme(ev);
+    render();
+  }
+  $("evSelect").onchange = () => loadEvents($("evSelect").value);
+  $("newEventBtn").onclick = () => eventModal(null);
+
+  document.querySelectorAll("#nav button").forEach((b) => (b.onclick = () => { page = b.dataset.page; render(); }));
+
+  function render() {
+    document.querySelectorAll("#nav button").forEach((b) => b.toggleAttribute("aria-current", b.dataset.page === page));
+    document.querySelectorAll("#nav button").forEach((b) => b.dataset.page === page && b.setAttribute("aria-current", "page"));
+    if (!ev && page !== "admins") {
+      $("page").innerHTML = `<div class="card empty"><h2>Create your first event</h2><p>Events hold booths, attendees and winners.</p>
+        <button class="btn accent" id="firstEv" type="button">+ New event</button></div>`;
+      $("firstEv").onclick = () => eventModal(null);
+      return;
+    }
+    ({ dashboard: pDashboard, booths: pBooths, attendees: pAttendees, winners: pWinners, settings: pSettings, admins: pAdmins })[page]();
+  }
+
+  // ---------- event create / edit ----------
+  function eventForm(e) {
+    e = e || { primary_color: P.C.DEFAULT_BRAND, accent_color: P.C.DEFAULT_ACCENT, min_stamps_to_qualify: 1, show_leaderboard: true, registration_open: true, is_active: true };
+    return `
+      <div class="field"><label for="eName">Event name</label><input id="eName" type="text" maxlength="120" value="${esc(e.name)}" required></div>
+      <div class="field"><label for="eSlug">Link name</label><input id="eSlug" type="text" maxlength="60" value="${esc(e.slug)}" pattern="[a-z0-9][a-z0-9\\-]{1,59}" required>
+        <div class="hint">Lowercase letters, numbers and dashes. Appears in the attendee link: <span class="code" id="slugPrev"></span></div></div>
+      <div class="row wrap"><div class="field grow"><label for="eStart">Start date</label><input id="eStart" type="date" value="${esc(e.starts_on)}"></div>
+        <div class="field grow"><label for="eEnd">End date</label><input id="eEnd" type="date" value="${esc(e.ends_on)}"></div></div>
+      <div class="field"><label for="eVenue">Venue</label><input id="eVenue" type="text" value="${esc(e.venue)}"></div>
+      <div class="field"><label for="eWelcome">Welcome message</label><textarea id="eWelcome" placeholder="Visit booths, answer a question and scan their code to collect stamps.">${esc(e.welcome_text)}</textarea></div>
+      <div class="field"><label for="ePrize">Prize</label><input id="ePrize" type="text" value="${esc(e.prize_text)}" placeholder="e.g. a $100 gift card"></div>
+      <div class="field"><label for="eMin">Stamps needed to enter the draw</label><input id="eMin" type="number" min="0" value="${e.min_stamps_to_qualify}" style="max-width:140px"></div>
+      <div class="field"><label>Colours</label><div class="colorpair">
+        <div><input id="eBrand" type="color" value="${esc(e.primary_color)}" aria-label="Primary colour"><div class="hint">Primary</div></div>
+        <div><input id="eAccent" type="color" value="${esc(e.accent_color)}" aria-label="Accent colour"><div class="hint">Accent</div></div></div></div>
+      ${logoField(e.logo_path, "Event logo", true)}
+      <div class="field stack">
+        <label class="check"><input id="eActive" type="checkbox" ${e.is_active ? "checked" : ""}> Event is live (attendees can open it)</label>
+        <label class="check"><input id="eReg" type="checkbox" ${e.registration_open ? "checked" : ""}> Registration open</label>
+        <label class="check"><input id="eBoard" type="checkbox" ${e.show_leaderboard ? "checked" : ""}> Show leaderboard to attendees</label>
+      </div>`;
+  }
+  function readEventForm(root) {
+    return {
+      name: val(root, "#eName"), slug: slugify(val(root, "#eSlug")), starts_on: val(root, "#eStart") || null, ends_on: val(root, "#eEnd") || null,
+      venue: val(root, "#eVenue") || null, welcome_text: val(root, "#eWelcome") || null, prize_text: val(root, "#ePrize") || null,
+      min_stamps_to_qualify: Math.max(0, parseInt(val(root, "#eMin")) || 0),
+      primary_color: val(root, "#eBrand"), accent_color: val(root, "#eAccent"),
+      is_active: root.querySelector("#eActive").checked, registration_open: root.querySelector("#eReg").checked, show_leaderboard: root.querySelector("#eBoard").checked,
+    };
+  }
+  function wireSlug(root, isNew) {
+    const n = root.querySelector("#eName"), s = root.querySelector("#eSlug"), p = root.querySelector("#slugPrev");
+    let touched = !isNew;
+    const upd = () => (p.textContent = joinUrl(slugify(s.value) || "your-event"));
+    n.oninput = () => { if (!touched) s.value = slugify(n.value); upd(); };
+    s.oninput = () => { touched = true; upd(); };
+    upd();
+  }
+  async function saveEvent(root, existing, logo) {
+    const row = readEventForm(root);
+    if (!row.name || row.slug.length < 2) return toast("Enter an event name and link name.", "err"), null;
+    if (logo.file()) { const p = await uploadLogo(logo.file(), "events"); if (!p) return null; row.logo_path = p; if (existing) await removeLogo(existing.logo_path); }
+    else if (logo.removed()) { row.logo_path = null; if (existing) await removeLogo(existing.logo_path); }
+    const q = existing ? sb.from("events").update(row).eq("id", existing.id).select().single() : sb.from("events").insert(row).select().single();
+    const { data, error } = await q;
+    if (error) return fail(error, error.code === "23505" ? "That link name is already used" : "Couldn't save event"), null;
+    return data;
+  }
+  function eventModal(existing) {
+    const m = modal(`<h2>${existing ? "Edit event" : "New event"}</h2><form id="evForm">${eventForm(existing)}
+      <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn" type="submit">Save event</button></div></form>`);
+    wireSlug(m.el, !existing);
+    const logo = wireLogoInput(m.el.querySelector(".logo-edit"), existing && existing.logo_path);
+    m.el.querySelector("#evForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = e.submitter; btn.disabled = true;
+      const saved = await saveEvent(m.el, existing, logo);
+      btn.disabled = false;
+      if (saved) { m.close(); toast("Event saved.", "ok"); if (!existing) page = "booths"; loadEvents(saved.id); }
+    };
+  }
+
+  // ---------- data helpers ----------
+  async function fetchBooths() {
+    const { data, error } = await sb.from("booths").select("*").eq("event_id", ev.id).order("sort_order").order("name");
+    if (error) fail(error);
+    return data || [];
+  }
+  async function fetchScores() {
+    const { data, error } = await sb.from("attendee_scores").select("*").eq("event_id", ev.id).order("points", { ascending: false }).order("created_at");
+    if (error) fail(error);
+    return data || [];
+  }
+  async function fetchStampCounts() {
+    const { data, error } = await sb.from("stamps").select("booth_id").eq("event_id", ev.id);
+    if (error) fail(error);
+    const m = {}; (data || []).forEach((s) => (m[s.booth_id] = (m[s.booth_id] || 0) + 1));
+    return m;
+  }
+
+  // ---------- dashboard ----------
+  async function pDashboard() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const [booths, scores, counts, winners] = await Promise.all([fetchBooths(), fetchScores(), fetchStampCounts(),
+      sb.from("winners").select("id", { count: "exact", head: true }).eq("event_id", ev.id)]);
+    const totalStamps = Object.values(counts).reduce((a, b) => a + b, 0);
+    const qualified = scores.filter((s) => s.stamp_count >= ev.min_stamps_to_qualify && s.stamp_count > 0).length;
+    const completed = booths.length ? scores.filter((s) => s.stamp_count >= booths.filter((b) => b.is_active).length).length : 0;
+    const max = Math.max(1, ...Object.values(counts));
+    const ranked = [...booths].sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>${esc(ev.name)}</h1>
+        <span class="pill ${ev.is_active ? "ok" : ""}">${ev.is_active ? "Live" : "Not live"}</span>
+        <div class="actions"><a class="btn ghost sm" href="${esc(joinUrl(ev.slug))}" target="_blank" rel="noopener">Open attendee app ↗</a>
+        <a class="btn sm accent" href="display.html?e=${encodeURIComponent(ev.slug)}" target="_blank" rel="noopener">Leaderboard & draw screen ↗</a></div></div>
+      <div class="kpis">
+        <div class="card kpi"><b>${scores.length}</b><span>Attendees</span></div>
+        <div class="card kpi"><b>${totalStamps}</b><span>Stamps collected</span></div>
+        <div class="card kpi"><b>${qualified}</b><span>Qualified for draw</span></div>
+        <div class="card kpi"><b>${completed}</b><span>Visited every booth</span></div>
+        <div class="card kpi"><b>${winners.count || 0}</b><span>Winners drawn</span></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h2 style="font-size:1.05rem">Visits by booth</h2>
+          ${ranked.length ? ranked.map((b) => `<div class="hbar"><span>${esc(b.name)}</span><div class="t"><i style="width:${100 * (counts[b.id] || 0) / max}%"></i></div><span class="n">${counts[b.id] || 0}</span></div>`).join("")
+            : '<p class="muted">No booths yet. <button class="linkbtn" id="goBooths" type="button">Add booths</button></p>'}
+        </div>
+        <div class="card" style="text-align:center"><h2 style="font-size:1.05rem">Attendee sign-up QR</h2>
+          <p class="small muted">Put this on signage and the welcome desk.</p>
+          <div class="qrbox">${qrSvg(joinUrl(ev.slug))}</div>
+          <p class="small"><span class="code">${esc(joinUrl(ev.slug))}</span></p>
+          <div class="row" style="justify-content:center"><button class="btn sm ghost" id="dlJoin" type="button">Download PNG</button><button class="btn sm" id="printJoin" type="button">Print poster</button></div>
+        </div>
+      </div>`;
+    const gb = $("goBooths"); if (gb) gb.onclick = () => { page = "booths"; render(); };
+    $("dlJoin").onclick = () => downloadFile(`${ev.slug}-join-qr.png`, qrDataUrl(joinUrl(ev.slug), 16));
+    $("printJoin").onclick = () => printPoster();
+  }
+
+  function printWindow(title, body, css) {
+    const w = window.open("", "_blank");
+    if (!w) return toast("Allow pop-ups to print.", "err");
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+      <style>*{box-sizing:border-box} body{font-family:Inter,system-ui,sans-serif;margin:0;color:#14202E;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      svg{display:block;width:100%;height:auto} @page{size:letter;margin:0.4in} ${css}</style></head><body>${body}
+      <script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`);
+    w.document.close();
+  }
+  function printPoster() {
+    printWindow(ev.name + " poster", `<div class="poster">
+      ${ev.logo_path ? `<img class="lg" src="${logoUrl(ev.logo_path)}" alt="">` : ""}
+      <h1>${esc(ev.name)}</h1><h2>Get your event passport</h2>
+      <p>Visit booths, collect stamps${ev.prize_text ? ", win " + esc(ev.prize_text) : " and win prizes"}!</p>
+      <div class="qr">${qrSvg(joinUrl(ev.slug), 10)}</div><p class="url">${esc(joinUrl(ev.slug))}</p></div>`,
+      `.poster{text-align:center;padding:30px;border-top:18px solid ${ev.primary_color};min-height:9.5in}
+       .lg{max-height:90px;max-width:300px;object-fit:contain;margin-bottom:10px} h1{font-size:40px;margin:10px 0 4px;color:${ev.primary_color}}
+       h2{font-size:28px;margin:0;color:${ev.accent_color}} p{font-size:20px} .qr{width:4.6in;margin:24px auto 8px} .url{font-size:13px;color:#5B6778}`);
+  }
+
+  // ---------- booths ----------
+  async function pBooths() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const [booths, counts] = await Promise.all([fetchBooths(), fetchStampCounts()]);
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>Booths & QR codes</h1>
+        <div class="actions">${booths.length ? `<button class="btn ghost sm" id="printAll" type="button">🖨️ Print QR cards</button><button class="btn ghost sm" id="printStaff" type="button">Print staff sheet</button>` : ""}
+        <button class="btn sm accent" id="addBooth" type="button">+ Add booth</button></div></div>
+      ${booths.length ? `<div class="card table-wrap"><table class="data"><thead><tr><th></th><th>Booth</th><th>Question for staff to ask</th><th>Points</th><th>Visits</th><th>Status</th><th></th></tr></thead><tbody>
+        ${booths.map((b) => `<tr><td>${logoTag(b.logo_path, b.name)}</td><td><b>${esc(b.name)}</b>${b.description ? `<div class="small muted">${esc(b.description)}</div>` : ""}</td>
+          <td class="small">${esc(b.question || "—")}</td><td>${b.points}</td><td>${counts[b.id] || 0}</td>
+          <td><span class="pill ${b.is_active ? "ok" : ""}">${b.is_active ? "Active" : "Hidden"}</span></td>
+          <td style="white-space:nowrap"><button class="btn sm" data-qr="${b.id}" type="button">QR</button> <button class="btn sm ghost" data-edit="${b.id}" type="button">Edit</button></td></tr>`).join("")}
+        </tbody></table></div>`
+        : `<div class="card empty"><h2>No booths yet</h2><p>Add each exhibitor booth with its logo — the logo becomes the stamp in attendees' passports.</p></div>`}`;
+    $("addBooth").onclick = () => boothModal(null, booths.length);
+    const pa = $("printAll"); if (pa) pa.onclick = () => printCards(booths.filter((b) => b.is_active));
+    const ps = $("printStaff"); if (ps) ps.onclick = () => printStaffSheet(booths.filter((b) => b.is_active));
+    document.querySelectorAll("[data-edit]").forEach((btn) => (btn.onclick = () => boothModal(booths.find((b) => b.id === btn.dataset.edit))));
+    document.querySelectorAll("[data-qr]").forEach((btn) => (btn.onclick = () => qrModal(booths.find((b) => b.id === btn.dataset.qr))));
+  }
+
+  function boothModal(b, count = 0) {
+    const m = modal(`<h2>${b ? "Edit booth" : "Add booth"}</h2><form id="bForm">
+      <div class="field"><label for="bName">Booth / exhibitor name</label><input id="bName" type="text" maxlength="120" value="${esc(b && b.name)}" required></div>
+      <div class="field"><label for="bDesc">Short description <span class="muted">(shown to attendees)</span></label><input id="bDesc" type="text" maxlength="160" value="${esc(b && b.description)}"></div>
+      <div class="field"><label for="bQ">Question for booth staff to ask</label><textarea id="bQ" placeholder="e.g. Name one career path in collision repair.">${esc(b && b.question)}</textarea>
+        <div class="hint">Printed on the staff sheet. Staff reveal the QR once the attendee answers.</div></div>
+      <div class="row wrap"><div class="field"><label for="bPts">Points</label><input id="bPts" type="number" min="0" max="1000" value="${b ? b.points : 1}" style="max-width:120px"></div>
+        <div class="field"><label for="bSort">Display order</label><input id="bSort" type="number" value="${b ? b.sort_order : count + 1}" style="max-width:120px"></div></div>
+      ${logoField(b && b.logo_path, "Logo (used as the passport stamp)")}
+      <label class="check field"><input id="bActive" type="checkbox" ${!b || b.is_active ? "checked" : ""}> Active (appears in passports and QR works)</label>
+      ${b ? `<div class="section-title">Danger zone</div><div class="row wrap">
+        <button class="btn sm ghost" type="button" id="regen">Generate new QR code</button>
+        <button class="btn sm danger" type="button" id="delBooth">Delete booth</button></div>
+        <p class="hint">A new QR code stops the old printed one from working.</p>` : ""}
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn" type="submit">Save booth</button></div></form>`);
+    const logo = wireLogoInput(m.el.querySelector(".logo-edit"), b && b.logo_path);
+    m.el.querySelector("#bForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const btn = e.submitter; btn.disabled = true;
+      const row = { name: val(m.el, "#bName"), description: val(m.el, "#bDesc") || null, question: val(m.el, "#bQ") || null,
+        points: Math.max(0, parseInt(val(m.el, "#bPts")) || 0), sort_order: parseInt(val(m.el, "#bSort")) || 0, is_active: m.el.querySelector("#bActive").checked };
+      if (!row.name) { btn.disabled = false; return toast("Enter a booth name.", "err"); }
+      if (logo.file()) { const p = await uploadLogo(logo.file(), "booths/" + ev.id); if (!p) { btn.disabled = false; return; } row.logo_path = p; if (b) await removeLogo(b.logo_path); }
+      else if (logo.removed()) { row.logo_path = null; if (b) await removeLogo(b.logo_path); }
+      const { error } = b ? await sb.from("booths").update(row).eq("id", b.id) : await sb.from("booths").insert({ ...row, event_id: ev.id });
+      btn.disabled = false;
+      if (error) return fail(error, "Couldn't save booth");
+      m.close(); toast("Booth saved.", "ok"); pBooths();
+    };
+    if (b) {
+      m.el.querySelector("#regen").onclick = async () => {
+        if (!confirm("Generate a new code? Any printed QR for this booth will stop working.")) return;
+        const { error } = await sb.from("booths").update({ code: randCode() }).eq("id", b.id);
+        if (error) return fail(error);
+        m.close(); toast("New QR code generated — reprint this booth's card.", "ok"); pBooths();
+      };
+      m.el.querySelector("#delBooth").onclick = async () => {
+        if (!confirm(`Delete "${b.name}"? All stamps attendees collected at this booth will also be removed.`)) return;
+        const { error } = await sb.from("booths").delete().eq("id", b.id);
+        if (error) return fail(error);
+        await removeLogo(b.logo_path);
+        m.close(); toast("Booth deleted.", "ok"); pBooths();
+      };
+    }
+  }
+
+  function qrModal(b) {
+    const url = boothUrl(ev.slug, b.code);
+    const m = modal(`<h2>${esc(b.name)} — stamp QR</h2>
+      <div class="qrbox">${qrSvg(url)}</div>
+      <p class="small" style="text-align:center">Code: <span class="code">${esc(b.code)}</span></p>
+      <p class="small muted" style="text-align:center">Attendees can scan with the passport app or their phone camera. Booth staff can also read out the code.</p>
+      ${b.question ? `<div class="card" style="background:var(--bg);box-shadow:none"><b class="small">Question to ask first</b><p style="margin:4px 0 0">${esc(b.question)}</p></div>` : ""}
+      <div class="row" style="justify-content:flex-end;margin-top:14px;flex-wrap:wrap">
+        <button class="btn ghost" type="button" data-close>Close</button>
+        <button class="btn ghost" type="button" id="copyLink">Copy link</button>
+        <button class="btn ghost" type="button" id="dlQr">Download PNG</button>
+        <button class="btn" type="button" id="printOne">Print card</button></div>`);
+    m.el.querySelector("#dlQr").onclick = () => downloadFile(`${ev.slug}-${slugify(b.name)}-qr.png`, qrDataUrl(url, 16));
+    m.el.querySelector("#printOne").onclick = () => printCards([b]);
+    m.el.querySelector("#copyLink").onclick = async () => { try { await navigator.clipboard.writeText(url); toast("Link copied.", "ok"); } catch (e) { prompt("Copy this link:", url); } };
+  }
+
+  function printCards(booths) {
+    if (!booths.length) return toast("No active booths to print.", "err");
+    printWindow(ev.name + " booth QR cards", `<div class="sheet">${booths.map((b) => `<div class="qc">
+        <div class="ev">${esc(ev.name)}</div>
+        <div class="lg">${b.logo_path ? `<img src="${logoUrl(b.logo_path)}" alt="">` : `<span>${esc(initials(b.name))}</span>`}</div>
+        <div class="nm">${esc(b.name)}</div>
+        <div class="qr">${qrSvg(boothUrl(ev.slug, b.code), 8)}</div>
+        <div class="cta">Answer our question, then scan to collect your stamp!</div>
+        <div class="cd">${esc(b.code)}</div></div>`).join("")}</div>`,
+      `.sheet{display:grid;grid-template-columns:1fr 1fr;gap:0.25in}
+       .qc{border:2px solid ${ev.primary_color};border-radius:16px;padding:16px;text-align:center;break-inside:avoid;page-break-inside:avoid;height:4.9in;display:flex;flex-direction:column;align-items:center;border-top-width:12px}
+       .ev{font-size:11px;font-weight:600;color:#5B6778;text-transform:uppercase;letter-spacing:.06em}
+       .lg{width:70px;height:70px;border-radius:50%;border:3px solid ${ev.accent_color};display:grid;place-items:center;overflow:hidden;margin:8px 0 4px}
+       .lg img{width:75%;height:75%;object-fit:contain} .lg span{font-weight:800;color:${ev.primary_color};font-size:22px}
+       .nm{font-size:18px;font-weight:800;color:${ev.primary_color}} .qr{width:2.3in;margin:6px auto}
+       .cta{font-size:12.5px;font-weight:600;margin-top:auto} .cd{font-family:monospace;font-size:10px;color:#5B6778;margin-top:4px}`);
+  }
+  function printStaffSheet(booths) {
+    printWindow(ev.name + " staff sheet", `<h1>${esc(ev.name)} — booth questions (staff only)</h1>
+      <table><thead><tr><th>Booth</th><th>Question to ask</th><th>Backup code</th></tr></thead><tbody>
+      ${booths.map((b) => `<tr><td><b>${esc(b.name)}</b></td><td>${esc(b.question || "—")}</td><td class="c">${esc(b.code)}</td></tr>`).join("")}</tbody></table>
+      <p class="n">Keep this sheet out of sight — anyone with a code can collect that booth's stamp.</p>`,
+      `h1{font-size:20px;color:${ev.primary_color}} table{width:100%;border-collapse:collapse;font-size:13px} th,td{border:1px solid #DDE3EA;padding:8px;text-align:left;vertical-align:top}
+       th{background:#F4F6F9} .c{font-family:monospace;font-size:11px} .n{font-size:12px;color:#5B6778}`);
+  }
+
+  // ---------- attendees ----------
+  let attSearch = "";
+  async function pAttendees() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const scores = await fetchScores();
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>Attendees <span class="pill brand">${scores.length}</span></h1>
+        <div class="actions"><button class="btn ghost sm" id="exportCsv" type="button">⬇ Export CSV</button><button class="btn sm accent" id="addAtt" type="button">+ Add attendee</button></div></div>
+      <div class="card">
+        <input id="attQ" type="text" placeholder="Search name, email or school…" value="${esc(attSearch)}" style="margin-bottom:10px" aria-label="Search attendees">
+        <div class="table-wrap"><table class="data"><thead><tr><th>Name</th><th>Email</th><th>School / org</th><th>Stamps</th><th>Points</th><th>Registered</th><th></th></tr></thead><tbody id="attRows"></tbody></table></div>
+      </div>`;
+    const draw = () => {
+      const q = attSearch.toLowerCase();
+      const rows = scores.filter((a) => !q || `${a.first_name} ${a.last_name} ${a.email} ${a.organization || ""}`.toLowerCase().includes(q));
+      $("attRows").innerHTML = rows.map((a) => `<tr><td><b>${esc(a.first_name)} ${esc(a.last_name)}</b> ${a.has_won ? '<span class="pill accent">Winner</span>' : ""}</td>
+        <td class="small">${esc(a.email)}</td><td class="small">${esc(a.organization || "")}</td><td>${a.stamp_count}</td><td><b>${a.points}</b></td>
+        <td class="small muted">${new Date(a.created_at).toLocaleString("en-CA", { dateStyle: "medium", timeStyle: "short" })}</td>
+        <td style="white-space:nowrap"><button class="btn sm ghost" data-att="${a.id}" type="button">Edit</button></td></tr>`).join("")
+        || `<tr><td colspan="7" class="empty">${scores.length ? "No matches." : "No one has registered yet."}</td></tr>`;
+      document.querySelectorAll("[data-att]").forEach((b) => (b.onclick = () => attendeeModal(scores.find((a) => a.id === b.dataset.att))));
+    };
+    draw();
+    $("attQ").oninput = (e) => { attSearch = e.target.value; draw(); };
+    $("addAtt").onclick = () => attendeeModal(null);
+    $("exportCsv").onclick = async () => {
+      const [booths, stamps] = await Promise.all([fetchBooths(), sb.from("stamps").select("attendee_id,booth_id").eq("event_id", ev.id)]);
+      const has = new Set((stamps.data || []).map((s) => s.attendee_id + "|" + s.booth_id));
+      const head = ["First name", "Last name", "Email", "School / organization", "Stamps", "Points", "Winner", "Registered", ...booths.map((b) => b.name)];
+      const lines = [head.map(csvCell).join(","), ...scores.map((a) => [a.first_name, a.last_name, a.email, a.organization, a.stamp_count, a.points, a.has_won ? "Yes" : "",
+        new Date(a.created_at).toISOString(), ...booths.map((b) => (has.has(a.id + "|" + b.id) ? "✓" : ""))].map(csvCell).join(","))];
+      downloadFile(`${ev.slug}-attendees.csv`, "﻿" + lines.join("\n"), "text/csv");
+    };
+  }
+
+  async function attendeeModal(a) {
+    const booths = await fetchBooths();
+    let have = new Set();
+    if (a) { const { data } = await sb.from("stamps").select("booth_id").eq("attendee_id", a.id); have = new Set((data || []).map((s) => s.booth_id)); }
+    const m = modal(`<h2>${a ? "Edit attendee" : "Add attendee"}</h2><form id="aForm">
+      <div class="row wrap"><div class="field grow"><label for="aFirst">First name</label><input id="aFirst" type="text" maxlength="60" value="${esc(a && a.first_name)}" required></div>
+        <div class="field grow"><label for="aLast">Last name</label><input id="aLast" type="text" maxlength="60" value="${esc(a && a.last_name)}" required></div></div>
+      <div class="field"><label for="aMail">Email</label><input id="aMail" type="email" maxlength="254" value="${esc(a && a.email)}" required></div>
+      <div class="field"><label for="aOrg">School / organization</label><input id="aOrg" type="text" maxlength="120" value="${esc(a && a.organization)}"></div>
+      <div class="field"><label>Stamps</label><div class="stamp-toggles">${booths.map((b) => `<label><input type="checkbox" value="${b.id}" ${have.has(b.id) ? "checked" : ""}> ${esc(b.name)}</label>`).join("") || '<span class="muted small">No booths yet.</span>'}</div>
+        <div class="hint">Tick to award a stamp manually (e.g. if a scan failed); untick to remove one.</div></div>
+      <div class="row" style="margin-top:14px">${a ? '<button class="btn sm danger" type="button" id="delAtt">Delete attendee</button>' : ""}
+        <span class="grow"></span><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn" type="submit">Save</button></div></form>`);
+    m.el.querySelector("#aForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const row = { first_name: val(m.el, "#aFirst"), last_name: val(m.el, "#aLast"), email: val(m.el, "#aMail").toLowerCase(), organization: val(m.el, "#aOrg") || null };
+      if (!row.first_name || !row.last_name || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(row.email)) return toast("Enter a name and a valid email.", "err");
+      let id = a && a.id;
+      const r = a ? await sb.from("attendees").update(row).eq("id", id) : await sb.from("attendees").insert({ ...row, event_id: ev.id }).select("id").single();
+      if (r.error) return fail(r.error, r.error.code === "23505" ? "That email is already registered for this event" : "Couldn't save");
+      if (!a) id = r.data.id;
+      const want = new Set([...m.el.querySelectorAll(".stamp-toggles input:checked")].map((i) => i.value));
+      const add = [...want].filter((x) => !have.has(x)).map((booth_id) => ({ event_id: ev.id, attendee_id: id, booth_id, source: "admin" }));
+      const del = [...have].filter((x) => !want.has(x));
+      if (add.length) { const { error } = await sb.from("stamps").insert(add); if (error) return fail(error); }
+      if (del.length) { const { error } = await sb.from("stamps").delete().eq("attendee_id", id).in("booth_id", del); if (error) return fail(error); }
+      m.close(); toast("Attendee saved.", "ok"); pAttendees();
+    };
+    if (a) m.el.querySelector("#delAtt").onclick = async () => {
+      if (!confirm(`Delete ${a.first_name} ${a.last_name}? Their stamps and any wins are removed too.`)) return;
+      const { error } = await sb.from("attendees").delete().eq("id", a.id);
+      if (error) return fail(error);
+      m.close(); toast("Attendee deleted.", "ok"); pAttendees();
+    };
+  }
+
+  // ---------- winners ----------
+  async function pWinners() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const { data, error } = await sb.from("winners").select("id,prize,drawn_at,attendee:attendees(first_name,last_name,email,organization)").eq("event_id", ev.id).order("drawn_at", { ascending: false });
+    if (error) return fail(error);
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>Winners</h1><div class="actions">
+        <a class="btn sm accent" href="display.html?e=${encodeURIComponent(ev.slug)}&draw=1" target="_blank" rel="noopener">🎲 Open draw screen ↗</a></div></div>
+      <p class="muted small">Draws run on the big-screen page so the audience can watch. Removing a winner here puts them back in the pool.</p>
+      ${data.length ? `<div class="card table-wrap"><table class="data"><thead><tr><th>Winner</th><th>Email</th><th>School / org</th><th>Prize</th><th>Drawn</th><th></th></tr></thead><tbody>
+        ${data.map((w) => `<tr><td><b>${esc(w.attendee.first_name)} ${esc(w.attendee.last_name)}</b></td><td class="small">${esc(w.attendee.email)}</td>
+          <td class="small">${esc(w.attendee.organization || "")}</td><td>${esc(w.prize || "—")}</td>
+          <td class="small muted">${new Date(w.drawn_at).toLocaleString("en-CA", { dateStyle: "medium", timeStyle: "short" })}</td>
+          <td><button class="btn sm danger" data-unwin="${w.id}" type="button">Remove</button></td></tr>`).join("")}</tbody></table></div>`
+        : '<div class="card empty"><h2>No winners yet</h2><p>Open the draw screen when you are ready to pick winners.</p></div>'}`;
+    document.querySelectorAll("[data-unwin]").forEach((b) => (b.onclick = async () => {
+      if (!confirm("Remove this winner? They'll be eligible to be drawn again.")) return;
+      const { error } = await sb.from("winners").delete().eq("id", b.dataset.unwin);
+      if (error) return fail(error);
+      toast("Winner removed.", "ok"); pWinners();
+    }));
+  }
+
+  // ---------- settings ----------
+  function pSettings() {
+    $("page").innerHTML = `<div class="pagehead"><h1>Event settings</h1></div>
+      <div class="card" style="max-width:720px"><form id="setForm">${eventForm(ev)}
+        <div class="row" style="justify-content:flex-end"><button class="btn" type="submit">Save changes</button></div></form>
+        <div class="section-title">Attendee app address</div>
+        <p class="small muted">QR codes point here. It's detected automatically from where this admin page is hosted; only change it if the attendee page lives somewhere else.</p>
+        <div class="row wrap"><input id="appUrl" type="url" value="${esc(appBaseUrl())}" class="grow" style="flex:1;min-width:240px"><button class="btn ghost sm" id="saveUrl" type="button">Save</button><button class="btn ghost sm" id="resetUrl" type="button">Reset</button></div>
+        <div class="section-title">Danger zone</div>
+        <button class="btn danger" id="delEvent" type="button">Delete this event</button>
+        <p class="hint">Permanently removes the event with all booths, attendees, stamps and winners.</p></div>`;
+    wireSlug($("page"), false);
+    const logo = wireLogoInput($("page").querySelector(".logo-edit"), ev.logo_path);
+    $("setForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const saved = await saveEvent($("page"), ev, logo);
+      if (saved) { toast("Settings saved.", "ok"); page = "settings"; loadEvents(saved.id); }
+    };
+    $("saveUrl").onclick = () => { const v = $("appUrl").value.trim(); try { new URL(v); localStorage.setItem("passport-app-url", v); toast("Saved on this browser.", "ok"); } catch (e) { toast("Enter a full URL.", "err"); } };
+    $("resetUrl").onclick = () => { localStorage.removeItem("passport-app-url"); $("appUrl").value = appBaseUrl(); };
+    $("delEvent").onclick = async () => {
+      const typed = prompt(`Type the event link name "${ev.slug}" to delete it permanently:`);
+      if (typed !== ev.slug) return typed !== null && toast("Name didn't match — nothing deleted.", "err");
+      const { data: bl } = await sb.from("booths").select("logo_path").eq("event_id", ev.id);
+      const { error } = await sb.from("events").delete().eq("id", ev.id);
+      if (error) return fail(error);
+      const paths = [ev.logo_path, ...(bl || []).map((b) => b.logo_path)].filter(Boolean);
+      if (paths.length) await sb.storage.from("logos").remove(paths);
+      localStorage.removeItem("passport-admin-event");
+      toast("Event deleted.", "ok"); page = "dashboard"; loadEvents();
+    };
+  }
+
+  // ---------- admins ----------
+  async function pAdmins() {
+    const [a, i] = await Promise.all([sb.from("admins").select("*").order("created_at"), sb.from("admin_invites").select("*").order("created_at")]);
+    if (a.error) return fail(a.error);
+    $("page").innerHTML = `<div class="pagehead"><h1>Admin users</h1></div>
+      <div class="grid2">
+        <div class="card"><h2 style="font-size:1.05rem">Admins</h2><div class="table-wrap"><table class="data"><tbody>
+          ${a.data.map((x) => `<tr><td>${esc(x.email)} ${x.user_id === me.id ? '<span class="pill">You</span>' : ""}</td><td><span class="pill ${x.role === "owner" ? "brand" : ""}">${x.role}</span></td>
+          <td>${myRole === "owner" && x.user_id !== me.id ? `<button class="btn sm danger" data-rm="${x.user_id}" type="button">Remove</button>` : ""}</td></tr>`).join("")}</tbody></table></div>
+          ${myRole !== "owner" ? '<p class="hint">Only the owner can remove admins.</p>' : ""}</div>
+        <div class="card"><h2 style="font-size:1.05rem">Invite an admin</h2>
+          <p class="small muted">Add their email, then send them this page's address. They choose “Create an admin account” with that same email. If they already have an account, they get access straight away.</p>
+          <form id="invForm" class="row"><input id="invEmail" type="email" placeholder="name@example.com" required class="grow" style="flex:1"><button class="btn" type="submit">Invite</button></form>
+          ${(i.data || []).length ? `<h3 class="small" style="margin-top:16px">Pending invites</h3>${i.data.map((x) => `<div class="row" style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="grow small">${esc(x.email)}</span><button class="linkbtn small" data-uninv="${esc(x.email)}" type="button">Cancel</button></div>`).join("")}` : ""}
+          <p class="small" style="margin-top:14px">Admin page: <span class="code">${esc(location.href.split("#")[0].split("?")[0])}</span></p></div>
+      </div>`;
+    $("invForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const email = $("invEmail").value.trim().toLowerCase();
+      const { error } = await sb.from("admin_invites").insert({ email, invited_by: me.id });
+      if (error) return fail(error, error.code === "23505" ? "Already invited" : "Couldn't invite");
+      toast("Invite added.", "ok"); pAdmins();
+    };
+    document.querySelectorAll("[data-uninv]").forEach((b) => (b.onclick = async () => { await sb.from("admin_invites").delete().eq("email", b.dataset.uninv); pAdmins(); }));
+    document.querySelectorAll("[data-rm]").forEach((b) => (b.onclick = async () => {
+      if (!confirm("Remove this admin's access?")) return;
+      const { error } = await sb.from("admins").delete().eq("user_id", b.dataset.rm);
+      if (error) return fail(error);
+      toast("Admin removed.", "ok"); pAdmins();
+    }));
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

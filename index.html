@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#003B71">
+<title>Event Passport</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { min-height: 100vh; padding-bottom: 110px; }
+  .hero { background: var(--brand); color: #fff; padding: 22px 18px 64px; position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; right: -90px; top: -110px; width: 200px; height: 200px; border-radius: 50%;
+    background: var(--accent); opacity: .9; }
+  .hero-inner { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; }
+  .hero .ev-logo { height: 44px; width: auto; max-width: 180px; object-fit: contain; background: #fff; border-radius: 8px; padding: 4px 8px; margin-bottom: 14px; }
+  .hero h1 { font-size: 1.6rem; font-weight: 800; margin: 0; }
+  .hero .meta { opacity: .85; font-size: .92rem; margin-top: 4px; }
+  .wrap { max-width: 560px; margin: -44px auto 0; padding: 0 16px; position: relative; z-index: 2; }
+
+  .tabs { display: flex; gap: 6px; background: var(--surface); padding: 5px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .tabs button { flex: 1; border: 0; background: transparent; padding: 10px; border-radius: 9px; font: 700 .95rem var(--font); color: var(--muted); cursor: pointer; }
+  .tabs button[aria-selected=true] { background: var(--brand); color: #fff; }
+
+  .progress-card h2 { font-size: 1.15rem; margin-bottom: 2px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 12px; }
+  .stat { background: var(--bg); border-radius: 10px; padding: 10px; text-align: center; }
+  .stat b { display: block; font-size: 1.5rem; font-weight: 800; color: var(--brand); line-height: 1.1; }
+  .stat span { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+  .bar { height: 10px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--brand), var(--accent)); border-radius: 99px; transition: width .6s ease; }
+  .qualify { margin-top: 12px; padding: 10px 12px; border-radius: 10px; font-weight: 600; font-size: .92rem; background: color-mix(in srgb, var(--accent) 10%, #fff); color: color-mix(in srgb, var(--accent) 80%, #000); }
+  .qualify.done { background: #E3F4EC; color: var(--ok); }
+  .winner { background: linear-gradient(135deg, #FFD54A, #FFB300); color: #3A2A00; padding: 14px; border-radius: 12px; font-weight: 800; text-align: center; margin-bottom: 14px; }
+
+  .stamps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 10px; margin-top: 6px; }
+  .stamp { text-align: center; }
+  .stamp .disc { width: 84px; height: 84px; margin: 0 auto 6px; border-radius: 50%; display: grid; place-items: center; position: relative;
+    border: 2px dashed var(--line); background: #fff; overflow: hidden; }
+  .stamp .disc img { width: 70%; height: 70%; object-fit: contain; filter: grayscale(1); opacity: .35; }
+  .stamp .disc .logo-ph { width: 100%; height: 100%; font-size: 1.3rem; opacity: .35; background: #fff; }
+  .stamp .name { font-size: .78rem; font-weight: 600; color: var(--muted); line-height: 1.2; }
+  .stamp.on .disc { border: 3px solid var(--accent); transform: rotate(-8deg); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent); }
+  .stamp.on .disc img { filter: none; opacity: 1; }
+  .stamp.on .disc .logo-ph { opacity: 1; background: color-mix(in srgb, var(--brand) 12%, #fff); }
+  .stamp.on .name { color: var(--ink); }
+  .stamp .tick { position: absolute; right: 2px; bottom: 2px; width: 24px; height: 24px; border-radius: 50%; background: var(--ok); color: #fff;
+    display: grid; place-items: center; font-size: 14px; font-weight: 900; transform: rotate(8deg); }
+
+  .scanbar { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(transparent, var(--bg) 30%); z-index: 20; }
+  .scanbar .btn { max-width: 528px; margin: 0 auto; display: flex; font-size: 1.1rem; min-height: 56px; border-radius: 14px; box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 40%, transparent); }
+
+  .lb-row { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--line); }
+  .lb-row:last-child { border-bottom: 0; }
+  .lb-rank { width: 34px; height: 34px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; font-weight: 800; color: var(--muted); flex: none; }
+  .lb-row.top .lb-rank { background: var(--accent); color: #fff; }
+  .lb-name { font-weight: 700; }
+  .lb-pts { margin-left: auto; text-align: right; font-weight: 800; color: var(--brand); }
+  .lb-pts small { display: block; font-weight: 500; color: var(--muted); font-size: .75rem; }
+
+  /* scanner */
+  .scanner { position: fixed; inset: 0; background: #000; z-index: 600; display: flex; flex-direction: column; }
+  .scanner video { flex: 1; width: 100%; object-fit: cover; }
+  .scanner .frame { position: absolute; left: 50%; top: 45%; width: min(70vw, 300px); aspect-ratio: 1; transform: translate(-50%,-50%);
+    border-radius: 24px; box-shadow: 0 0 0 9999px rgba(0,0,0,.45); border: 3px solid #fff; }
+  .scanner .top { position: absolute; top: 0; left: 0; right: 0; padding: calc(14px + env(safe-area-inset-top)) 16px 14px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+  .scanner .bottom { position: absolute; bottom: 0; left: 0; right: 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); color: #fff; text-align: center; }
+  .scanner .close { background: rgba(255,255,255,.2); color: #fff; border: 0; width: 44px; height: 44px; border-radius: 50%; font-size: 22px; cursor: pointer; }
+
+  /* stamp celebration */
+  .celebrate { position: fixed; inset: 0; background: rgba(10,20,30,.7); z-index: 700; display: grid; place-items: center; padding: 20px; }
+  .celebrate .box { background: #fff; border-radius: 20px; padding: 28px 22px; text-align: center; width: min(360px, 100%); }
+  .celebrate .big { width: 140px; height: 140px; margin: 0 auto 16px; border-radius: 50%; border: 5px solid var(--accent); display: grid; place-items: center; overflow: hidden; background: #fff;
+    animation: slam .55s cubic-bezier(.2,1.6,.4,1) both; }
+  .celebrate .big img { width: 72%; height: 72%; object-fit: contain; }
+  .celebrate .big .logo-ph { width: 100%; height: 100%; font-size: 2.4rem; }
+  @keyframes slam { 0% { transform: scale(2.4) rotate(-30deg); opacity: 0; } 100% { transform: scale(1) rotate(-8deg); opacity: 1; } }
+  .celebrate h2 { font-size: 1.4rem; }
+  .plus { display: inline-block; background: var(--accent); color: #fff; font-weight: 800; padding: 4px 12px; border-radius: 99px; margin-bottom: 10px; }
+
+  .ev-list a { display: block; padding: 14px; border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); text-decoration: none; color: var(--ink); margin-bottom: 10px; font-weight: 700; }
+  .foot { text-align: center; margin: 24px 0 8px; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <img id="evLogo" class="ev-logo hidden" alt="">
+    <h1 id="evName">Event Passport</h1>
+    <div class="meta" id="evMeta"></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="loading" class="card"><p class="muted">Loading…</p></div>
+
+  <!-- choose event -->
+  <section id="vChoose" class="hidden">
+    <div class="card"><h2>Choose your event</h2><div id="evList" class="ev-list"></div></div>
+  </section>
+
+  <section id="vMissing" class="hidden card">
+    <h2>Event not found</h2>
+    <p class="muted">This event isn't open right now. Check the link or QR code you used.</p>
+  </section>
+
+  <!-- register -->
+  <section id="vRegister" class="hidden">
+    <div class="card">
+      <div id="regNew">
+        <h2>Get your passport</h2>
+        <p class="muted" id="regIntro">Visit booths, answer a question and scan their code to collect stamps.</p>
+        <form id="regForm" novalidate>
+          <div class="row"><div class="field grow"><label for="fFirst">First name</label><input id="fFirst" type="text" autocomplete="given-name" required maxlength="60"></div>
+          <div class="field grow"><label for="fLast">Last name</label><input id="fLast" type="text" autocomplete="family-name" required maxlength="60"></div></div>
+          <div class="field"><label for="fEmail">Email</label><input id="fEmail" type="email" autocomplete="email" inputmode="email" required maxlength="254"></div>
+          <div class="field"><label for="fOrg">School or organization <span class="muted">(optional)</span></label><input id="fOrg" type="text" autocomplete="organization" maxlength="120"></div>
+          <button class="btn accent block" type="submit" id="regBtn">Start collecting stamps</button>
+        </form>
+        <p class="small muted" style="text-align:center;margin-top:12px">Already registered on another device? <button class="linkbtn" id="toResume" type="button">Continue with your email</button></p>
+      </div>
+      <div id="regResume" class="hidden">
+        <h2>Welcome back</h2>
+        <p class="muted">Enter the email you registered with to open your passport.</p>
+        <form id="resumeForm" novalidate>
+          <div class="field"><label for="rEmail">Email</label><input id="rEmail" type="email" autocomplete="email" inputmode="email" required></div>
+          <button class="btn block" type="submit">Open my passport</button>
+        </form>
+        <p class="small" style="text-align:center;margin-top:12px"><button class="linkbtn" id="toNew" type="button">New here? Register</button></p>
+      </div>
+      <p class="small muted" style="margin-top:14px">Your name (first name and last initial) may appear on the event leaderboard. Your email is only used by the organizers to contact prize winners.</p>
+    </div>
+  </section>
+
+  <!-- passport -->
+  <section id="vPassport" class="hidden">
+    <div class="tabs" role="tablist" id="tabs">
+      <button role="tab" aria-selected="true" data-tab="passport">My passport</button>
+      <button role="tab" aria-selected="false" data-tab="board" id="tabBoard">Leaderboard</button>
+    </div>
+
+    <div id="pPassport">
+      <div id="winnerBanner" class="winner hidden">🎉 You've been drawn as a winner! See the organizers to claim your prize.</div>
+      <div class="card progress-card">
+        <h2 id="hello">Hi!</h2>
+        <div class="muted small" id="progressText"></div>
+        <div class="stats">
+          <div class="stat"><b id="sStamps">0</b><span>Stamps</span></div>
+          <div class="stat"><b id="sPoints">0</b><span>Points</span></div>
+          <div class="stat"><b id="sRank">–</b><span>Rank</span></div>
+        </div>
+        <div class="bar" aria-hidden="true"><i id="barFill" style="width:0"></i></div>
+        <div id="qualify" class="qualify hidden"></div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <h2 style="font-size:1.05rem">Booth stamps</h2>
+        <div class="stamps" id="stampGrid"></div>
+      </div>
+      <p class="foot small muted"><span id="whoami"></span> · <button class="linkbtn" id="signOut" type="button">Not you?</button></p>
+    </div>
+
+    <div id="pBoard" class="hidden">
+      <div class="card">
+        <div class="row"><h2 class="grow" style="font-size:1.1rem;margin:0">Top players</h2><span class="small muted" id="myRankNote"></span></div>
+        <div id="board" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="scanbar hidden" id="scanbar"><button class="btn accent block" id="scanBtn" type="button">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg>
+  Scan booth code</button></div>
+
+<!-- scanner overlay -->
+<div class="scanner hidden" id="scanner" role="dialog" aria-label="Scan booth QR code">
+  <video id="video" playsinline muted></video>
+  <div class="frame"></div>
+  <div class="top"><b>Scan the booth's QR code</b><button class="close" id="scanClose" aria-label="Close">✕</button></div>
+  <div class="bottom">
+    <p id="scanMsg" style="margin:0 0 10px">Point your camera at the code the booth shows you.</p>
+    <button class="btn ghost sm" style="color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5)" id="typeCode" type="button">Type the code instead</button>
+  </div>
+  <canvas id="canvas" class="hidden"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script>
+(async function () {
+  const { sb, esc, logoUrl, initials, applyTheme, toast, fmtDate } = P;
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  let slug = (params.get("e") || "").toLowerCase();
+  let ev = null, token = null, passport = null;
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+  };
+
+  function show(id) {
+    ["loading", "vChoose", "vMissing", "vRegister", "vPassport"].forEach((v) => $(v).classList.toggle("hidden", v !== id));
+    $("scanbar").classList.toggle("hidden", id !== "vPassport");
+  }
+
+  // --- booth code in the URL (scanned with the phone's own camera) ---
+  const urlCode = params.get("b");
+  if (urlCode) {
+    sessionStorage.setItem("pendingCode", urlCode);
+    params.delete("b");
+    history.replaceState(null, "", location.pathname + "?" + params.toString());
+  }
+
+  // --- no event chosen ---
+  if (!slug) {
+    const { data } = await sb.rpc("list_active_events");
+    if (data && data.length === 1) { slug = data[0].slug; history.replaceState(null, "", "?e=" + slug); }
+    else {
+      $("evList").innerHTML = (data || []).map((e) =>
+        `<a href="?e=${encodeURIComponent(e.slug)}">${esc(e.name)}<div class="small muted">${esc([fmtDate(e.starts_on), e.venue].filter(Boolean).join(" · "))}</div></a>`
+      ).join("") || '<p class="muted">No events are open right now.</p>';
+      show("vChoose");
+      return;
+    }
+  }
+
+  const { data: evData, error: evErr } = await sb.rpc("get_event", { p_slug: slug });
+  if (evErr || !evData) { show("vMissing"); return; }
+  ev = evData;
+  applyTheme(ev);
+  document.querySelector('meta[name=theme-color]').content = ev.primary_color;
+  document.title = ev.name + " · Passport";
+  $("evName").textContent = ev.name;
+  $("evMeta").textContent = [fmtDate(ev.starts_on), ev.venue].filter(Boolean).join(" · ");
+  if (ev.logo_path) { $("evLogo").src = logoUrl(ev.logo_path); $("evLogo").alt = ev.name; $("evLogo").classList.remove("hidden"); }
+  if (ev.welcome_text) $("regIntro").textContent = ev.welcome_text;
+  if (!ev.show_leaderboard) $("tabs").classList.add("hidden");
+
+  const tokenKey = "passport:" + ev.slug;
+  token = store.get(tokenKey);
+
+  // --- registration ---
+  $("toResume").onclick = () => { $("regNew").classList.add("hidden"); $("regResume").classList.remove("hidden"); $("rEmail").focus(); };
+  $("toNew").onclick = () => { $("regResume").classList.add("hidden"); $("regNew").classList.remove("hidden"); };
+
+  async function register(first, last, email, org) {
+    const { data, error } = await sb.rpc("register_attendee", { p_slug: ev.slug, p_first: first, p_last: last, p_email: email, p_org: org });
+    if (error) { toast("Something went wrong. Please try again.", "err"); return; }
+    const msgs = { bad_email: "Please enter a valid email address.", closed: "Registration for this event is closed.",
+      need_name: "We couldn't find that email. Please register with your name.", no_event: "This event isn't open." };
+    if (msgs[data.status]) {
+      toast(msgs[data.status], "err");
+      if (data.status === "need_name") { $("toNew").click(); $("fEmail").value = email; $("fFirst").focus(); }
+      return;
+    }
+    token = data.token;
+    store.set(tokenKey, token);
+    if (data.status === "resumed") toast("Welcome back, " + data.first_name + "!", "ok");
+    await openPassport();
+  }
+
+  $("regForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const f = $("fFirst").value.trim(), l = $("fLast").value.trim(), em = $("fEmail").value.trim();
+    if (!f || !l || !em) { toast("Please fill in your name and email.", "err"); return; }
+    $("regBtn").disabled = true;
+    await register(f, l, em, $("fOrg").value.trim());
+    $("regBtn").disabled = false;
+  };
+  $("resumeForm").onsubmit = async (e) => {
+    e.preventDefault();
+    const em = $("rEmail").value.trim();
+    if (!em) return;
+    await register("", "", em, null);
+  };
+  $("signOut").onclick = () => {
+    if (!confirm("Sign out of this passport on this device? You can get back in with your email.")) return;
+    store.del(tokenKey); token = null; show("vRegister");
+  };
+
+  // --- passport ---
+  async function loadPassport() {
+    const { data, error } = await sb.rpc("get_passport", { p_token: token });
+    if (error) { toast("Couldn't load your passport. Check your connection.", "err"); return false; }
+    if (!data) { store.del(tokenKey); token = null; show("vRegister"); return false; }
+    passport = data;
+    renderPassport();
+    return true;
+  }
+
+  function renderPassport() {
+    const stamped = new Map(passport.stamps.map((s) => [s.booth_id, s.at]));
+    const total = ev.booths.length, have = ev.booths.filter((b) => stamped.has(b.id)).length;
+    $("hello").textContent = "Hi " + passport.first_name + "!";
+    $("whoami").textContent = passport.first_name + " " + passport.last_name;
+    $("progressText").textContent = total ? `${have} of ${total} booths visited` : "Booths will appear here soon.";
+    $("sStamps").textContent = have;
+    $("sPoints").textContent = passport.points;
+    $("sRank").textContent = passport.points > 0 ? "#" + passport.rank : "–";
+    $("barFill").style.width = total ? (100 * have / total) + "%" : "0";
+    $("winnerBanner").classList.toggle("hidden", !passport.is_winner);
+
+    const q = $("qualify"), min = ev.min_stamps_to_qualify;
+    const prize = ev.prize_text ? " for " + ev.prize_text : "";
+    if (min > 0 || ev.prize_text) {
+      q.classList.remove("hidden");
+      if (have >= min) { q.className = "qualify done"; q.textContent = "✓ You're entered in the prize draw" + prize + "!"; }
+      else { const n = min - have; q.className = "qualify"; q.textContent = `Collect ${n} more stamp${n === 1 ? "" : "s"} to enter the prize draw${prize}.`; }
+    } else q.classList.add("hidden");
+
+    $("stampGrid").innerHTML = ev.booths.map((b) => {
+      const on = stamped.has(b.id);
+      const img = b.logo_path ? `<img src="${logoUrl(b.logo_path)}" alt="" loading="lazy">` : `<div class="logo-ph">${esc(initials(b.name))}</div>`;
+      return `<div class="stamp ${on ? "on" : ""}"><div class="disc">${img}${on ? '<span class="tick" aria-hidden="true">✓</span>' : ""}</div>
+        <div class="name">${esc(b.name)}</div><span class="hidden">${on ? "visited" : "not visited"}</span></div>`;
+    }).join("");
+  }
+
+  async function openPassport() {
+    show("vPassport");
+    const ok = await loadPassport();
+    if (!ok) return;
+    const pending = sessionStorage.getItem("pendingCode");
+    if (pending) { sessionStorage.removeItem("pendingCode"); await claim(pending); }
+  }
+
+  // --- leaderboard ---
+  async function loadBoard() {
+    const { data, error } = await sb.rpc("get_leaderboard", { p_slug: ev.slug, p_limit: 25 });
+    if (error || !data) { $("board").innerHTML = '<p class="muted">Leaderboard unavailable.</p>'; return; }
+    $("myRankNote").textContent = passport && passport.points > 0 ? `You're #${passport.rank} of ${passport.total_players}` : "";
+    $("board").innerHTML = data.length ? data.map((r) => `<div class="lb-row ${r.rank <= 3 ? "top" : ""}">
+      <div class="lb-rank">${r.rank}</div><div><div class="lb-name">${esc(r.display_name)}</div><div class="small muted">${esc(r.organization || "")}</div></div>
+      <div class="lb-pts">${r.points}<small>${r.stamps} stamp${r.stamps === 1 ? "" : "s"}</small></div></div>`).join("")
+      : '<p class="muted">No stamps collected yet — be the first!</p>';
+  }
+
+  document.querySelectorAll("#tabs button").forEach((b) => b.onclick = () => {
+    document.querySelectorAll("#tabs button").forEach((x) => x.setAttribute("aria-selected", x === b));
+    const board = b.dataset.tab === "board";
+    $("pPassport").classList.toggle("hidden", board);
+    $("pBoard").classList.toggle("hidden", !board);
+    if (board) loadBoard();
+  });
+
+  // --- claiming a stamp ---
+  function codeFrom(text) {
+    text = String(text || "").trim();
+    try { const u = new URL(text); const b = u.searchParams.get("b"); if (b) return b; } catch (e) {}
+    return /^[a-z0-9]{4,40}$/i.test(text) ? text : null;
+  }
+
+  async function claim(raw) {
+    const code = codeFrom(raw);
+    if (!code) { toast("That QR code isn't a booth code.", "err"); return; }
+    const { data, error } = await sb.rpc("claim_stamp", { p_token: token, p_code: code });
+    if (error) { toast("Couldn't record that stamp. Check your connection and try again.", "err"); return; }
+    const msgs = { invalid: "That code isn't valid. Ask the booth to show it again.", wrong_event: "That code is for a different event.",
+      closed: "This event is closed.", no_attendee: "Your passport wasn't found. Please register again." };
+    if (msgs[data.status]) { toast(msgs[data.status], "err"); if (data.status === "no_attendee") { store.del(tokenKey); show("vRegister"); } return; }
+    await loadPassport();
+    celebrate(data.booth, data.status === "stamped");
+  }
+
+  function celebrate(b, isNew) {
+    const el = document.createElement("div");
+    el.className = "celebrate";
+    const img = b.logo_path ? `<img src="${logoUrl(b.logo_path)}" alt="">` : `<div class="logo-ph">${esc(initials(b.name))}</div>`;
+    el.innerHTML = `<div class="box" role="dialog" aria-live="polite"><div class="big">${img}</div>
+      ${isNew ? `<div class="plus">+${b.points} point${b.points === 1 ? "" : "s"}</div><h2>Stamp collected!</h2>` : "<h2>Already stamped</h2>"}
+      <p class="muted">${esc(b.name)}</p><button class="btn block" type="button">Keep exploring</button></div>`;
+    document.body.appendChild(el);
+    el.querySelector("button").onclick = () => el.remove();
+    el.onclick = (e) => { if (e.target === el) el.remove(); };
+    if (isNew && window.confetti) setTimeout(() => confetti({ particleCount: 120, spread: 80, origin: { y: .55 }, colors: [ev.primary_color, ev.accent_color, "#ffffff"] }), 350);
+  }
+
+  // --- camera scanner ---
+  let stream = null, scanning = false, detector = null;
+  if ("BarcodeDetector" in window) { try { detector = new BarcodeDetector({ formats: ["qr_code"] }); } catch (e) {} }
+
+  async function openScanner() {
+    $("scanner").classList.remove("hidden");
+    $("scanMsg").textContent = "Point your camera at the code the booth shows you.";
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+      const v = $("video"); v.srcObject = stream; await v.play();
+      scanning = true; tick();
+    } catch (e) {
+      $("scanMsg").textContent = "Camera unavailable. Allow camera access, or type the code instead.";
+    }
+  }
+  function closeScanner() {
+    scanning = false;
+    if (stream) stream.getTracks().forEach((t) => t.stop());
+    stream = null;
+    $("scanner").classList.add("hidden");
+  }
+  async function tick() {
+    if (!scanning) return;
+    const v = $("video");
+    if (v.readyState >= 2) {
+      let text = null;
+      try {
+        if (detector) { const r = await detector.detect(v); if (r.length) text = r[0].rawValue; }
+        else if (window.jsQR) {
+          const c = $("canvas"), w = v.videoWidth, h = v.videoHeight, s = Math.min(1, 640 / Math.max(w, h));
+          c.width = w * s; c.height = h * s;
+          const ctx = c.getContext("2d", { willReadFrequently: true });
+          ctx.drawImage(v, 0, 0, c.width, c.height);
+          const r = jsQR(ctx.getImageData(0, 0, c.width, c.height).data, c.width, c.height, { inversionAttempts: "dontInvert" });
+          if (r) text = r.data;
+        }
+      } catch (e) {}
+      if (text) { if (navigator.vibrate) navigator.vibrate(60); closeScanner(); await claim(text); return; }
+    }
+    requestAnimationFrame(tick);
+  }
+  $("scanBtn").onclick = openScanner;
+  $("scanClose").onclick = closeScanner;
+  $("typeCode").onclick = async () => {
+    const c = prompt("Enter the booth code:");
+    if (c) { closeScanner(); await claim(c.trim()); }
+  };
+
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && token && passport) loadPassport(); });
+
+  // --- start ---
+  if (token) await openPassport();
+  else show("vRegister");
+})();
+</script>
+</body>
+</html>

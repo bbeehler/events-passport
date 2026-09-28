@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaderboard</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  html, body { height: 100%; }
+  body { background: var(--brand); color: #fff; overflow: hidden; }
+  .screen { height: 100vh; display: grid; grid-template-columns: 1fr minmax(280px, 30vw); gap: 3vw; padding: 3.5vh 3.5vw; position: relative; }
+  .screen::before { content: ""; position: absolute; width: 60vh; height: 60vh; border-radius: 50%; background: var(--accent); right: -18vh; top: -22vh; opacity: .9; }
+  .main, .side { position: relative; z-index: 1; min-height: 0; }
+  .head { display: flex; align-items: center; gap: 1.6vw; margin-bottom: 2.5vh; }
+  .head img { height: 8vh; max-width: 18vw; object-fit: contain; background: #fff; border-radius: 10px; padding: 6px 10px; }
+  .head h1 { font-size: clamp(24px, 3.4vw, 64px); font-weight: 900; margin: 0; }
+  .head .sub { font-size: clamp(14px, 1.3vw, 24px); opacity: .8; font-weight: 600; }
+  .board { display: flex; flex-direction: column; gap: 1.1vh; }
+  .r { display: grid; grid-template-columns: 5vw 1fr auto; align-items: center; gap: 1.4vw; background: rgba(255,255,255,.1); border-radius: 14px; padding: 1.3vh 1.4vw;
+    font-size: clamp(16px, 1.7vw, 34px); transition: transform .4s; }
+  .r .rk { width: 4.4vw; height: 4.4vw; max-width: 72px; max-height: 72px; min-width: 36px; min-height: 36px; border-radius: 50%; background: rgba(255,255,255,.18); display: grid; place-items: center; font-weight: 900; }
+  .r.p1 { background: #fff; color: var(--brand); } .r.p1 .rk { background: #FFC83D; color: #3A2A00; }
+  .r.p2 .rk { background: #D8DEE6; color: #25313F; } .r.p3 .rk { background: #D99A5B; color: #3A1F00; }
+  .r .nm { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .r .org { font-size: .62em; opacity: .75; font-weight: 500; }
+  .r .pts { font-weight: 900; text-align: right; } .r .pts small { display: block; font-size: .55em; font-weight: 600; opacity: .75; }
+  .side .joinbox { background: #fff; color: var(--ink); border-radius: 22px; padding: 2.4vh 1.6vw; text-align: center; }
+  .side .joinbox h2 { font-size: clamp(18px, 1.8vw, 34px); color: var(--brand); margin: 0 0 .3em; font-weight: 900; }
+  .side .joinbox p { margin: 0; font-size: clamp(12px, 1.05vw, 20px); color: var(--muted); }
+  .side .joinbox .qr { width: 100%; max-width: 38vh; margin: 1.6vh auto; }
+  .side .joinbox .qr svg { width: 100%; height: auto; display: block; }
+  .prize { margin-top: 2vh; background: rgba(0,0,0,.2); border-radius: 16px; padding: 1.8vh 1.4vw; font-size: clamp(14px, 1.3vw, 26px); font-weight: 700; text-align: center; }
+  .empty-board { font-size: clamp(18px, 2vw, 40px); opacity: .8; padding: 6vh 0; }
+  .ctrl { position: fixed; right: 14px; bottom: 12px; z-index: 5; display: flex; gap: 8px; opacity: .25; transition: opacity .2s; }
+  .ctrl:hover, .ctrl:focus-within { opacity: 1; }
+  .ctrl .btn { background: rgba(0,0,0,.35); }
+
+  /* draw overlay */
+  .draw { position: fixed; inset: 0; background: var(--brand); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4vh 4vw; text-align: center; }
+  .draw h1 { font-size: clamp(28px, 4vw, 72px); font-weight: 900; margin: 0; }
+  .draw .prize-lbl { font-size: clamp(18px, 2vw, 40px); font-weight: 700; color: #FFD54A; margin-top: .4em; }
+  .reel { margin: 5vh 0; min-height: 22vh; display: grid; place-items: center; }
+  .reel .name { font-size: clamp(40px, 7vw, 140px); font-weight: 900; line-height: 1; }
+  .reel .name.spin { opacity: .7; filter: blur(1px); }
+  .reel .org { font-size: clamp(16px, 2vw, 36px); opacity: .8; margin-top: 1.2vh; font-weight: 600; }
+  .reel .land { animation: land .6s cubic-bezier(.2,1.5,.4,1) both; }
+  @keyframes land { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .wlist { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 90vw; }
+  .wlist div { background: rgba(255,255,255,.14); padding: 10px 18px; border-radius: 12px; font-weight: 700; font-size: clamp(14px, 1.3vw, 24px); }
+  .draw .btns { position: absolute; bottom: 3vh; display: flex; gap: 10px; }
+  .draw .btn.ghost { color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.4); }
+  .modal { color: var(--ink); }
+
+  @media (max-width: 800px) {
+    body { overflow: auto; } .screen { grid-template-columns: 1fr; height: auto; min-height: 100vh; }
+    .r { grid-template-columns: 44px 1fr auto; } .head img { height: 48px; max-width: 40vw; }
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <section class="main">
+    <div class="head"><img id="logo" class="hidden" alt=""><div><h1 id="title">Leaderboard</h1><div class="sub" id="sub"></div></div></div>
+    <div class="board" id="board" aria-live="polite"></div>
+  </section>
+  <aside class="side">
+    <div class="joinbox"><h2>Join the game</h2><p>Scan to get your passport</p><div class="qr" id="joinQr"></div><p class="small" id="joinUrl" style="word-break:break-all"></p></div>
+    <div class="prize hidden" id="prize"></div>
+  </aside>
+</div>
+<div class="ctrl"><button class="btn sm" id="fsBtn" type="button">⛶ Full screen</button><button class="btn sm" id="drawBtn" type="button">🎲 Draw winners</button></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script>
+(async function () {
+  const { sb, esc, logoUrl, applyTheme, toast, joinUrl, qrSvg, fmtDate } = P;
+  const $ = (id) => document.getElementById(id);
+  const params = new URLSearchParams(location.search);
+  const slug = (params.get("e") || "").toLowerCase();
+  applyTheme(null);
+  if (!slug) { $("title").textContent = "Add ?e=your-event to the address"; return; }
+
+  const { data: ev } = await sb.rpc("get_event", { p_slug: slug });
+  if (!ev) { $("title").textContent = "Event not found or not live"; return; }
+  applyTheme(ev);
+  document.title = ev.name + " · Leaderboard";
+  $("title").textContent = ev.name;
+  $("sub").textContent = "Live leaderboard";
+  if (ev.logo_path) { $("logo").src = logoUrl(ev.logo_path); $("logo").classList.remove("hidden"); }
+  $("joinQr").innerHTML = qrSvg(joinUrl(ev.slug));
+  $("joinUrl").textContent = joinUrl(ev.slug).replace(/^https?:\/\//, "");
+  if (ev.prize_text) {
+    $("prize").textContent = `🏆 Collect ${ev.min_stamps_to_qualify || 1}+ stamp${(ev.min_stamps_to_qualify || 1) === 1 ? "" : "s"} to be entered to win ${ev.prize_text}`;
+    $("prize").classList.remove("hidden");
+  }
+
+  async function refresh() {
+    const { data, error } = await sb.rpc("get_leaderboard", { p_slug: slug, p_limit: 10 });
+    if (error) return;
+    if (!data) { $("board").innerHTML = '<div class="empty-board">The leaderboard is hidden for this event.</div>'; return; }
+    $("board").innerHTML = data.length ? data.map((r) => `<div class="r ${r.rank <= 3 ? "p" + r.rank : ""}"><div class="rk">${r.rank}</div>
+      <div class="nm">${esc(r.display_name)} ${r.organization ? `<span class="org">· ${esc(r.organization)}</span>` : ""}</div>
+      <div class="pts">${r.points}<small>${r.stamps} stamp${r.stamps === 1 ? "" : "s"}</small></div></div>`).join("")
+      : '<div class="empty-board">No stamps yet — scan the code to be the first on the board!</div>';
+  }
+  await refresh();
+  setInterval(refresh, 10000);
+
+  $("fsBtn").onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {});
+
+  // ---------- draw ----------
+  function modal(html) {
+    const bg = document.createElement("div"); bg.className = "modal-bg";
+    bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true">${html}</div>`;
+    document.body.appendChild(bg);
+    bg.addEventListener("click", (e) => { if (e.target === bg) bg.remove(); });
+    bg.querySelectorAll("[data-close]").forEach((b) => (b.onclick = () => bg.remove()));
+    return { el: bg.querySelector(".modal"), close: () => bg.remove() };
+  }
+
+  async function ensureAdmin() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      const { data } = await sb.from("admins").select("user_id").eq("user_id", session.user.id).maybeSingle();
+      if (data) return true;
+      toast("This account isn't an admin.", "err");
+      return false;
+    }
+    return new Promise((resolve) => {
+      const m = modal(`<h2>Admin sign in</h2><p class="small muted">Only admins can draw winners.</p><form id="lf">
+        <div class="field"><label for="le">Email</label><input id="le" type="email" autocomplete="username" required></div>
+        <div class="field"><label for="lp">Password</label><input id="lp" type="password" autocomplete="current-password" required></div>
+        <div class="row" style="justify-content:flex-end"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn" type="submit">Sign in</button></div></form>`);
+      m.el.querySelector("#le").focus();
+      m.el.querySelector("#lf").onsubmit = async (e) => {
+        e.preventDefault();
+        const { error } = await sb.auth.signInWithPassword({ email: m.el.querySelector("#le").value.trim(), password: m.el.querySelector("#lp").value });
+        if (error) return toast(error.message, "err");
+        m.close(); resolve(await ensureAdmin());
+      };
+      m.el.querySelector("[data-close]").addEventListener("click", () => resolve(false));
+    });
+  }
+
+  async function openDrawSetup() {
+    if (!(await ensureAdmin())) return;
+    const m = modal(`<h2>Draw winners</h2><form id="df">
+      <div class="field"><label for="dPrize">Prize</label><input id="dPrize" type="text" value="${esc(ev.prize_text || "")}" placeholder="e.g. Grand prize"></div>
+      <div class="row wrap">
+        <div class="field"><label for="dCount">How many winners</label><input id="dCount" type="number" min="1" max="100" value="1" style="max-width:130px"></div>
+        <div class="field"><label for="dMin">Minimum stamps</label><input id="dMin" type="number" min="0" value="${ev.min_stamps_to_qualify}" style="max-width:130px"></div></div>
+      <div class="field stack">
+        <label class="check"><input id="dEx" type="checkbox" checked> Skip people who have already won</label>
+        <label class="check"><input id="dW" type="checkbox"> More points = more chances (weighted draw)</label></div>
+      <p class="small" id="dElig">Checking eligible players…</p>
+      <div class="row" style="justify-content:flex-end"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn accent" type="submit" id="dGo">Start the draw</button></div></form>`);
+    const f = m.el;
+    const upd = async () => {
+      const { data } = await sb.rpc("eligible_count", { p_event: ev.id, p_min_stamps: parseInt(f.querySelector("#dMin").value) || 0, p_exclude_previous: f.querySelector("#dEx").checked });
+      f.querySelector("#dElig").textContent = `${data || 0} player${data === 1 ? "" : "s"} eligible.`;
+      f.querySelector("#dGo").disabled = !data;
+    };
+    f.querySelector("#dMin").oninput = upd; f.querySelector("#dEx").onchange = upd; upd();
+    f.querySelector("#df").onsubmit = async (e) => {
+      e.preventDefault();
+      const opts = { prize: f.querySelector("#dPrize").value.trim(), count: Math.max(1, parseInt(f.querySelector("#dCount").value) || 1),
+        min: parseInt(f.querySelector("#dMin").value) || 0, ex: f.querySelector("#dEx").checked, w: f.querySelector("#dW").checked };
+      m.close(); runDraw(opts);
+    };
+  }
+
+  async function runDraw(o) {
+    // names for the spinning reel (display only)
+    let q = sb.from("attendee_scores").select("first_name,last_name").eq("event_id", ev.id).gte("stamp_count", o.min);
+    if (o.ex) q = q.eq("has_won", false);
+    const { data: pool } = await q.limit(500);
+    const { data: winners, error } = await sb.rpc("draw_winners", { p_event: ev.id, p_count: o.count, p_prize: o.prize || null,
+      p_min_stamps: o.min, p_weighted: o.w, p_exclude_previous: o.ex });
+    if (error) return toast("Draw failed: " + error.message, "err");
+    if (!winners || !winners.length) return toast("No eligible players.", "err");
+
+    const ov = document.createElement("div"); ov.className = "draw";
+    ov.innerHTML = `<h1>${esc(ev.name)}</h1>${o.prize ? `<div class="prize-lbl">🏆 ${esc(o.prize)}</div>` : ""}
+      <div class="reel" id="reel"></div><div class="wlist" id="wlist"></div>
+      <div class="btns hidden" id="dBtns"><button class="btn ghost" id="dClose" type="button">Back to leaderboard</button><button class="btn accent" id="dAgain" type="button">Draw again</button></div>`;
+    document.body.appendChild(ov);
+    const reel = ov.querySelector("#reel"), names = (pool || []).map((p) => `${p.first_name} ${p.last_name}`);
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    for (let i = 0; i < winners.length; i++) {
+      const w = winners[i];
+      const spins = names.length > 1 ? 26 : 0;
+      for (let s = 0; s < spins; s++) {
+        reel.innerHTML = `<div class="name spin">${esc(names[Math.floor(Math.random() * names.length)])}</div>`;
+        await sleep(50 + s * s * 0.45);
+      }
+      reel.innerHTML = `<div class="land"><div class="name">${esc(w.first_name)} ${esc(w.last_name)}</div>${w.organization ? `<div class="org">${esc(w.organization)}</div>` : ""}</div>`;
+      if (window.confetti) {
+        confetti({ particleCount: 180, spread: 100, origin: { y: .5 }, colors: [ev.primary_color, ev.accent_color, "#FFD54A", "#ffffff"] });
+        setTimeout(() => confetti({ particleCount: 120, angle: 60, spread: 70, origin: { x: 0 } }), 250);
+        setTimeout(() => confetti({ particleCount: 120, angle: 120, spread: 70, origin: { x: 1 } }), 400);
+      }
+      if (winners.length > 1) {
+        await sleep(2600);
+        const d = document.createElement("div"); d.textContent = `${w.first_name} ${w.last_name}`;
+        ov.querySelector("#wlist").appendChild(d);
+      }
+    }
+    ov.querySelector("#dBtns").classList.remove("hidden");
+    ov.querySelector("#dClose").onclick = () => { ov.remove(); refresh(); };
+    ov.querySelector("#dAgain").onclick = () => { ov.remove(); openDrawSetup(); };
+  }
+
+  $("drawBtn").onclick = openDrawSetup;
+  if (params.get("draw") === "1") openDrawSetup();
+})();
+</script>
+</body>
+</html>
