@@ -13,6 +13,7 @@
   .auth .card { width: min(420px, 100%); padding: 28px; }
   .auth h1 { font-size: 1.4rem; }
   .brandmark { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--brand); margin-bottom: 18px; }
+  .brandmark .orgmark { height: 34px; width: auto; max-width: 150px; object-fit: contain; background: #fff; border-radius: 7px; padding: 3px 7px; }
   .brandmark i { width: 30px; height: 30px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; color: #fff; font-style: normal; font-size: 16px; }
 
   .topbar { background: var(--brand); color: #fff; padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; position: sticky; top: 0; z-index: 50; }
@@ -141,6 +142,12 @@
 (async function () {
   const { sb, esc, logoUrl, initials, applyTheme, toast, joinUrl, boothUrl, qrSvg, qrDataUrl, fmtDate, appBaseUrl } = P;
   const $ = (id) => document.getElementById(id);
+  document.querySelectorAll(".brandmark").forEach((b) => {
+    if (!P.orgLogoUrl) return;
+    const img = new Image(); img.className = "orgmark"; img.alt = P.C.ORG_NAME;
+    img.onload = () => { const i = b.querySelector("i"); if (i) i.replaceWith(img); };
+    img.src = P.orgLogoUrl;
+  });
   let me = null, myRole = null, events = [], ev = null, page = "dashboard";
 
   applyTheme(null);
@@ -513,12 +520,13 @@
   }
   function printPoster() {
     printWindow(ev.name + " poster", `<div class="poster">
+      ${P.orgLogoTag("org")}
       ${ev.logo_path ? `<img class="lg" src="${logoUrl(ev.logo_path)}" alt="">` : ""}
       <h1>${esc(ev.name)}</h1><h2>Get your event passport</h2>
       <p>Visit booths, collect stamps${ev.prize_text ? ", win " + esc(ev.prize_text) : " and win prizes"}!</p>
       <div class="qr">${qrSvg(joinUrl(ev.slug), 10)}</div><p class="url">${esc(joinUrl(ev.slug))}</p></div>`,
       `.poster{text-align:center;padding:30px;border-top:18px solid ${ev.primary_color};min-height:9.5in}
-       .lg{max-height:90px;max-width:300px;object-fit:contain;margin-bottom:10px} h1{font-size:40px;margin:10px 0 4px;color:${ev.primary_color}}
+       .lg{max-height:90px;max-width:300px;object-fit:contain;margin-bottom:10px} .org{display:block;max-height:70px;max-width:260px;object-fit:contain;margin:0 auto 14px} h1{font-size:40px;margin:10px 0 4px;color:${ev.primary_color}}
        h2{font-size:28px;margin:0;color:${ev.accent_color}} p{font-size:20px} .qr{width:4.6in;margin:24px auto 8px} .url{font-size:13px;color:#5B6778}`);
   }
 
@@ -623,14 +631,14 @@
         <div class="nm">${esc(b.name)}</div>
         <div class="qr">${qrSvg(boothUrl(ev.slug, b.code), 8)}</div>
         <div class="cta">Answer our question, then scan to collect your stamp!</div>
-        <div class="cd">${esc(b.code)}</div></div>`).join("")}</div>`,
+        <div class="cd">${esc(b.code)}</div>${P.orgLogoTag("org")}</div>`).join("")}</div>`,
       `.sheet{display:grid;grid-template-columns:1fr 1fr;gap:0.25in}
        .qc{border:2px solid ${ev.primary_color};border-radius:16px;padding:16px;text-align:center;break-inside:avoid;page-break-inside:avoid;height:4.9in;display:flex;flex-direction:column;align-items:center;border-top-width:12px}
        .ev{font-size:11px;font-weight:600;color:#5B6778;text-transform:uppercase;letter-spacing:.06em}
        .lg{width:70px;height:70px;border-radius:50%;border:3px solid ${ev.accent_color};display:grid;place-items:center;overflow:hidden;margin:8px 0 4px}
        .lg img{width:75%;height:75%;object-fit:contain} .lg span{font-weight:800;color:${ev.primary_color};font-size:22px}
        .nm{font-size:18px;font-weight:800;color:${ev.primary_color}} .qr{width:2.3in;margin:6px auto}
-       .cta{font-size:12.5px;font-weight:600;margin-top:auto} .cd{font-family:monospace;font-size:10px;color:#5B6778;margin-top:4px}`);
+       .cta{font-size:12.5px;font-weight:600;margin-top:auto} .cd{font-family:monospace;font-size:10px;color:#5B6778;margin-top:4px} .qc .org{height:26px;max-width:120px;object-fit:contain;margin-top:6px}`);
   }
   function printStaffSheet(booths) {
     printWindow(ev.name + " staff sheet", `<h1>${esc(ev.name)} — booth questions (staff only)</h1>

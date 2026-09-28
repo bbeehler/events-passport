@@ -14,7 +14,8 @@
   .hero::after { content: ""; position: absolute; right: -90px; top: -110px; width: 200px; height: 200px; border-radius: 50%;
     background: var(--accent); opacity: .9; }
   .hero-inner { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; }
-  .hero .ev-logo { height: 44px; width: auto; max-width: 180px; object-fit: contain; background: #fff; border-radius: 8px; padding: 4px 8px; margin-bottom: 14px; }
+  .hero .logos { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .hero .ev-logo { height: 44px; width: auto; max-width: 180px; object-fit: contain; background: #fff; border-radius: 8px; padding: 4px 8px; }
   .hero h1 { font-size: 1.6rem; font-weight: 800; margin: 0; }
   .hero .meta { opacity: .85; font-size: .92rem; margin-top: 4px; }
   .wrap { max-width: 560px; margin: -44px auto 0; padding: 0 16px; position: relative; z-index: 2; }
@@ -86,7 +87,7 @@
 <body>
 <header class="hero">
   <div class="hero-inner">
-    <img id="evLogo" class="ev-logo hidden" alt="">
+    <div class="logos" id="logos"><img id="evLogo" class="ev-logo hidden" alt=""></div>
     <h1 id="evName">Event Passport</h1>
     <div class="meta" id="evMeta"></div>
   </div>
@@ -202,6 +203,7 @@
 (async function () {
   const { sb, esc, logoUrl, initials, applyTheme, toast, fmtDate } = P;
   const $ = (id) => document.getElementById(id);
+  $("logos").insertAdjacentHTML("afterbegin", P.orgLogoTag("ev-logo"));
   const params = new URLSearchParams(location.search);
   let slug = (params.get("e") || "").toLowerCase();
   let ev = null, token = null, passport = null;

@@ -8,4 +8,7 @@ window.PASSPORT_CONFIG = {
   DEFAULT_BRAND: "#003B71",
   DEFAULT_ACCENT: "#E4002B",
   ORG_NAME: "AIA Canada",
+  // AIA Canada logo shown across the app (attendee header, admin, big screen, printouts).
+  // Put the file at this path in the repo. A full-colour logo works best — it sits on a white chip.
+  ORG_LOGO: "assets/aia-canada-logo.png",
 };

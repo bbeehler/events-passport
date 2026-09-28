@@ -63,7 +63,7 @@
 <body>
 <div class="screen">
   <section class="main">
-    <div class="head"><img id="logo" class="hidden" alt=""><div><h1 id="title">Leaderboard</h1><div class="sub" id="sub"></div></div></div>
+    <div class="head"><span id="orgSlot" style="display:contents"></span><img id="logo" class="hidden" alt=""><div><h1 id="title">Leaderboard</h1><div class="sub" id="sub"></div></div></div>
     <div class="board" id="board" aria-live="polite"></div>
   </section>
   <aside class="side">
@@ -82,6 +82,7 @@
 (async function () {
   const { sb, esc, logoUrl, applyTheme, toast, joinUrl, qrSvg, fmtDate } = P;
   const $ = (id) => document.getElementById(id);
+  $("orgSlot").innerHTML = P.orgLogoTag();
   const params = new URLSearchParams(location.search);
   const slug = (params.get("e") || "").toLowerCase();
   applyTheme(null);
