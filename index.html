@@ -105,6 +105,14 @@
     <p class="muted">This event isn't open right now. Check the link or QR code you used.</p>
   </section>
 
+  <section id="vSoon" class="hidden card" style="text-align:center">
+    <div style="font-size:2.4rem">🎟️</div>
+    <h2>Opening soon</h2>
+    <p class="muted" id="soonText">The passport for this event isn't open yet. Check back when the event starts!</p>
+  </section>
+
+  <div id="statusNote" class="card hidden" style="margin-bottom:14px;font-weight:600"></div>
+
   <!-- register -->
   <section id="vRegister" class="hidden">
     <div class="card">
@@ -205,8 +213,9 @@
   };
 
   function show(id) {
-    ["loading", "vChoose", "vMissing", "vRegister", "vPassport"].forEach((v) => $(v).classList.toggle("hidden", v !== id));
-    $("scanbar").classList.toggle("hidden", id !== "vPassport");
+    ["loading", "vChoose", "vMissing", "vSoon", "vRegister", "vPassport"].forEach((v) => $(v).classList.toggle("hidden", v !== id));
+    $("scanbar").classList.toggle("hidden", id !== "vPassport" || !ev || ev.status !== "active");
+    $("statusNote").classList.toggle("hidden", !ev || !["paused", "completed"].includes(ev.status) || !["vRegister", "vPassport"].includes(id));
   }
 
   // --- booth code in the URL (scanned with the phone's own camera) ---
@@ -241,6 +250,19 @@
   if (ev.logo_path) { $("evLogo").src = logoUrl(ev.logo_path); $("evLogo").alt = ev.name; $("evLogo").classList.remove("hidden"); }
   if (ev.welcome_text) $("regIntro").textContent = ev.welcome_text;
   if (!ev.show_leaderboard) $("tabs").classList.add("hidden");
+
+  if (ev.status === "ready") {
+    if (ev.starts_on) $("soonText").textContent = `The passport opens on ${fmtDate(ev.starts_on)}. Check back when the event starts!`;
+    show("vSoon"); return;
+  }
+  if (ev.status === "paused") $("statusNote").textContent = "⏸ Stamp collecting is paused for the moment. Your stamps are safe — check back soon.";
+  if (ev.status === "completed") $("statusNote").textContent = "🏁 This event has ended. Thanks for playing — here are your final results.";
+  if (!ev.registration_open) {
+    $("regNew").classList.add("hidden"); $("regResume").classList.remove("hidden");
+    $("toNew").parentElement.classList.add("hidden");
+    $("regResume").querySelector("h2").textContent = ev.status === "active" ? "Sign-up is closed" : "Welcome back";
+    $("regResume").querySelector("p").textContent = "New sign-ups are closed. If you already have a passport, enter the email you registered with.";
+  }
 
   const tokenKey = "passport:" + ev.slug;
   token = store.get(tokenKey);
@@ -362,7 +384,8 @@
     const { data, error } = await sb.rpc("claim_stamp", { p_token: token, p_code: code });
     if (error) { toast("Couldn't record that stamp. Check your connection and try again.", "err"); return; }
     const msgs = { invalid: "That code isn't valid. Ask the booth to show it again.", wrong_event: "That code is for a different event.",
-      closed: "This event is closed.", no_attendee: "Your passport wasn't found. Please register again." };
+      closed: "This event has ended — no more stamps can be collected.", paused: "Stamp collecting is paused right now. Try again soon!",
+      no_attendee: "Your passport wasn't found. Please register again." };
     if (msgs[data.status]) { toast(msgs[data.status], "err"); if (data.status === "no_attendee") { store.del(tokenKey); show("vRegister"); } return; }
     await loadPassport();
     celebrate(data.booth, data.status === "stamped");

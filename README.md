@@ -45,7 +45,7 @@ To add teammates: **Admin users → Invite** their email, then send them the adm
 
 ## 4. Set up an event
 
-1. **+ New event** — name, link name (e.g. `career-expo-2026`), dates, prize, stamps needed to enter the draw, colours and logo.
+1. **+ New event** (it starts as "Ready to launch") — name, link name (e.g. `career-expo-2026`), dates, prize, stamps needed to enter the draw, colours and logo.
 2. **Booths & QR codes → + Add booth** for each exhibitor. Upload their logo (square PNG with a transparent background looks best) — it becomes the stamp. Add the question staff should ask.
 3. **Print QR cards** — one card per booth, 4 per letter page. Give each booth its card.
 4. **Print staff sheet** — the list of questions (and backup codes) for booth staff. Keep it out of sight.
@@ -63,7 +63,25 @@ To add teammates: **Admin users → Invite** their email, then send them the adm
 ## After the event
 
 - **Attendees → Export CSV** gives every attendee with contact details, points and a column per booth — ready for exhibitor follow-up.
-- Turn off **Event is live** in Event settings to close the passport.
+- Set the event to **Completed** so passports and results stay visible but no more stamps can be collected. Later, **Archive** it to tidy it away.
+
+## Event statuses
+
+Change status from the Dashboard, Event settings, or **All events**.
+
+| Status | Attendees see |
+|---|---|
+| Ready to launch | "Opening soon" — use this while setting up booths and printing QR codes |
+| Live | Full game: sign-up, scanning, leaderboard |
+| Paused | Their passport and leaderboard, with a "paused" notice; sign-up and scanning are off |
+| Completed | Final results; no new sign-ups or stamps |
+| Archived | Nothing — the event is hidden, and it moves out of the admin event list (tick "Show archived" on All events to restore it). Data is kept. |
+
+**Delete** (All events or Event settings) permanently removes an event and everything in it; you'll be asked to type its link name.
+
+**Removing booths:** use **Remove** in the booths table. If attendees already collected that stamp, it's deleted from their passports and their points drop. To keep their points, hide the booth instead (Edit → untick Active).
+
+**Admins:** owners can remove admins and make other people owners. You can't remove or demote yourself — make someone else an owner first.
 
 ## Good to know
 

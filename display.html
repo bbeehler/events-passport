@@ -92,7 +92,8 @@
   applyTheme(ev);
   document.title = ev.name + " · Leaderboard";
   $("title").textContent = ev.name;
-  $("sub").textContent = "Live leaderboard";
+  $("sub").textContent = { paused: "Leaderboard · stamp collecting paused", completed: "Final results" }[ev.status] || "Live leaderboard";
+  if (ev.status === "ready") $("sub").textContent = "Opening soon";
   if (ev.logo_path) { $("logo").src = logoUrl(ev.logo_path); $("logo").classList.remove("hidden"); }
   $("joinQr").innerHTML = qrSvg(joinUrl(ev.slug));
   $("joinUrl").textContent = joinUrl(ev.slug).replace(/^https?:\/\//, "");

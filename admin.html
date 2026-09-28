@@ -121,6 +121,7 @@
   </header>
   <div class="shell">
     <nav class="side" id="nav">
+      <button data-page="events">🗂️ All events</button>
       <button data-page="dashboard" aria-current="page">📊 Dashboard</button>
       <button data-page="booths">🏷️ Booths & QR codes</button>
       <button data-page="attendees">👥 Attendees</button>
@@ -249,14 +250,57 @@
     await loadEvents();
   }
 
+  // ---------- event status ----------
+  const STATUS = {
+    ready: { label: "Ready to launch", pill: "brand", help: "Hidden from attendees. Set up booths and print QR codes." },
+    active: { label: "Live", pill: "ok", help: "Attendees can register and collect stamps." },
+    paused: { label: "Paused", pill: "accent", help: "Attendees can see their passport and the leaderboard, but sign-up and scanning are off." },
+    completed: { label: "Completed", pill: "", help: "Final results. Passports and leaderboard stay visible; no new sign-ups or stamps." },
+    archived: { label: "Archived", pill: "", help: "Hidden from attendees and moved out of your event list. Data is kept." },
+  };
+  const statusPill = (s) => `<span class="pill ${STATUS[s].pill}">${STATUS[s].label}</span>`;
+  const statusOptions = (cur) => Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === cur ? "selected" : ""}>${v.label}</option>`).join("");
+
+  async function setStatus(e, status) {
+    if (status === e.status) return;
+    const warn = {
+      active: `Go live with "${e.name}"? Attendees will be able to register and collect stamps.`,
+      paused: `Pause "${e.name}"? Sign-up and scanning stop until you set it back to Live.`,
+      completed: `Mark "${e.name}" as completed? No more sign-ups or stamps; results stay visible.`,
+      archived: `Archive "${e.name}"? It will be hidden from attendees and from your event list. You can restore it from All events.`,
+      ready: `Set "${e.name}" back to Ready to launch? Attendees won't be able to open it.`,
+    }[status];
+    if (!confirm(warn)) return false;
+    const { error } = await sb.from("events").update({ status }).eq("id", e.id);
+    if (error) { fail(error, "Couldn't change status"); return false; }
+    toast(`${e.name}: ${STATUS[status].label}`, "ok");
+    return true;
+  }
+
+  async function deleteEvent(e) {
+    const typed = prompt(`This permanently deletes "${e.name}" with all its booths, attendees, stamps and winners.\n\nType the link name "${e.slug}" to confirm:`);
+    if (typed === null) return false;
+    if (typed.trim() !== e.slug) { toast("Name didn't match — nothing deleted.", "err"); return false; }
+    const { data: bl } = await sb.from("booths").select("logo_path").eq("event_id", e.id);
+    const { error } = await sb.from("events").delete().eq("id", e.id);
+    if (error) { fail(error); return false; }
+    const paths = [e.logo_path, ...(bl || []).map((b) => b.logo_path)].filter(Boolean);
+    if (paths.length) await sb.storage.from("logos").remove(paths);
+    if (localStorage.getItem("passport-admin-event") === e.id) localStorage.removeItem("passport-admin-event");
+    toast("Event deleted.", "ok");
+    return true;
+  }
+
   // ---------- events ----------
   async function loadEvents(selectId) {
     const { data, error } = await sb.from("events").select("*").order("created_at", { ascending: false });
     if (error) return fail(error);
     events = data;
     const want = selectId || localStorage.getItem("passport-admin-event");
-    ev = events.find((e) => e.id === want) || events[0] || null;
-    $("evSelect").innerHTML = events.map((e) => `<option value="${e.id}">${esc(e.name)}${e.is_active ? "" : " (inactive)"}</option>`).join("") || "<option>No events yet</option>";
+    const visible = events.filter((e) => e.status !== "archived");
+    ev = events.find((e) => e.id === want) || visible[0] || null;
+    const listed = ev && ev.status === "archived" ? [ev, ...visible] : visible;
+    $("evSelect").innerHTML = listed.map((e) => `<option value="${e.id}">${esc(e.name)} · ${STATUS[e.status].label}</option>`).join("") || "<option>No events yet</option>";
     if (ev) { $("evSelect").value = ev.id; localStorage.setItem("passport-admin-event", ev.id); }
     applyTheme(ev);
     render();
@@ -269,18 +313,19 @@
   function render() {
     document.querySelectorAll("#nav button").forEach((b) => b.toggleAttribute("aria-current", b.dataset.page === page));
     document.querySelectorAll("#nav button").forEach((b) => b.dataset.page === page && b.setAttribute("aria-current", "page"));
-    if (!ev && page !== "admins") {
+    if (!ev && page !== "admins" && page !== "events") {
       $("page").innerHTML = `<div class="card empty"><h2>Create your first event</h2><p>Events hold booths, attendees and winners.</p>
         <button class="btn accent" id="firstEv" type="button">+ New event</button></div>`;
       $("firstEv").onclick = () => eventModal(null);
       return;
     }
-    ({ dashboard: pDashboard, booths: pBooths, attendees: pAttendees, winners: pWinners, settings: pSettings, admins: pAdmins })[page]();
+    ({ events: pEvents, dashboard: pDashboard, booths: pBooths, attendees: pAttendees, winners: pWinners, settings: pSettings, admins: pAdmins })[page]();
   }
 
   // ---------- event create / edit ----------
   function eventForm(e) {
-    e = e || { primary_color: P.C.DEFAULT_BRAND, accent_color: P.C.DEFAULT_ACCENT, min_stamps_to_qualify: 1, show_leaderboard: true, registration_open: true, is_active: true };
+    const isNew = !e;
+    e = e || { primary_color: P.C.DEFAULT_BRAND, accent_color: P.C.DEFAULT_ACCENT, min_stamps_to_qualify: 1, show_leaderboard: true, registration_open: true, status: "ready" };
     return `
       <div class="field"><label for="eName">Event name</label><input id="eName" type="text" maxlength="120" value="${esc(e.name)}" required></div>
       <div class="field"><label for="eSlug">Link name</label><input id="eSlug" type="text" maxlength="60" value="${esc(e.slug)}" pattern="[a-z0-9][a-z0-9\\-]{1,59}" required>
@@ -295,19 +340,22 @@
         <div><input id="eBrand" type="color" value="${esc(e.primary_color)}" aria-label="Primary colour"><div class="hint">Primary</div></div>
         <div><input id="eAccent" type="color" value="${esc(e.accent_color)}" aria-label="Accent colour"><div class="hint">Accent</div></div></div></div>
       ${logoField(e.logo_path, "Event logo", true)}
+      ${isNew ? `<div class="field"><label for="eStatus">Status</label><select id="eStatus" style="max-width:260px">${statusOptions("ready")}</select>
+        <div class="hint">Start as “Ready to launch” while you set up booths, then go Live on the day.</div></div>` : ""}
       <div class="field stack">
-        <label class="check"><input id="eActive" type="checkbox" ${e.is_active ? "checked" : ""}> Event is live (attendees can open it)</label>
-        <label class="check"><input id="eReg" type="checkbox" ${e.registration_open ? "checked" : ""}> Registration open</label>
+        <label class="check"><input id="eReg" type="checkbox" ${e.registration_open ? "checked" : ""}> Allow new sign-ups while live</label>
         <label class="check"><input id="eBoard" type="checkbox" ${e.show_leaderboard ? "checked" : ""}> Show leaderboard to attendees</label>
       </div>`;
   }
   function readEventForm(root) {
+    const st = root.querySelector("#eStatus");
     return {
+      ...(st ? { status: st.value } : {}),
       name: val(root, "#eName"), slug: slugify(val(root, "#eSlug")), starts_on: val(root, "#eStart") || null, ends_on: val(root, "#eEnd") || null,
       venue: val(root, "#eVenue") || null, welcome_text: val(root, "#eWelcome") || null, prize_text: val(root, "#ePrize") || null,
       min_stamps_to_qualify: Math.max(0, parseInt(val(root, "#eMin")) || 0),
       primary_color: val(root, "#eBrand"), accent_color: val(root, "#eAccent"),
-      is_active: root.querySelector("#eActive").checked, registration_open: root.querySelector("#eReg").checked, show_leaderboard: root.querySelector("#eBoard").checked,
+      registration_open: root.querySelector("#eReg").checked, show_leaderboard: root.querySelector("#eBoard").checked,
     };
   }
   function wireSlug(root, isNew) {
@@ -372,9 +420,10 @@
     const ranked = [...booths].sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
     $("page").innerHTML = `
       <div class="pagehead"><h1>${esc(ev.name)}</h1>
-        <span class="pill ${ev.is_active ? "ok" : ""}">${ev.is_active ? "Live" : "Not live"}</span>
+        ${statusPill(ev.status)}
         <div class="actions"><a class="btn ghost sm" href="${esc(joinUrl(ev.slug))}" target="_blank" rel="noopener">Open attendee app ↗</a>
         <a class="btn sm accent" href="display.html?e=${encodeURIComponent(ev.slug)}" target="_blank" rel="noopener">Leaderboard & draw screen ↗</a></div></div>
+      ${statusCard()}
       <div class="kpis">
         <div class="card kpi"><b>${scores.length}</b><span>Attendees</span></div>
         <div class="card kpi"><b>${totalStamps}</b><span>Stamps collected</span></div>
@@ -395,8 +444,61 @@
         </div>
       </div>`;
     const gb = $("goBooths"); if (gb) gb.onclick = () => { page = "booths"; render(); };
+    wireStatusCard();
     $("dlJoin").onclick = () => downloadFile(`${ev.slug}-join-qr.png`, qrDataUrl(joinUrl(ev.slug), 16));
     $("printJoin").onclick = () => printPoster();
+  }
+
+  // ---------- status card (dashboard + settings) ----------
+  function statusCard() {
+    const next = { ready: ["active"], active: ["paused", "completed"], paused: ["active", "completed"], completed: ["active", "archived"], archived: ["ready"] }[ev.status];
+    const verb = { active: ev.status === "ready" ? "🚀 Go live" : "▶ Resume (go live)", paused: "⏸ Pause", completed: "🏁 Mark completed", archived: "🗄 Archive", ready: "↩ Restore (ready to launch)" };
+    return `<div class="card statuscard" style="margin-bottom:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <div class="grow" style="min-width:220px"><div class="small muted" style="font-weight:700;text-transform:uppercase;letter-spacing:.05em">Event status</div>
+        <div style="margin-top:4px">${statusPill(ev.status)} <span class="small muted">${esc(STATUS[ev.status].help)}</span></div></div>
+      <div class="row wrap">${next.map((s, i) => `<button class="btn sm ${i === 0 ? "" : "ghost"}" data-setstatus="${s}" type="button">${verb[s]}</button>`).join("")}
+        <select id="statusAny" aria-label="Set any status" style="width:auto;padding:6px 8px;font-size:.88rem"><option value="">More…</option>${statusOptions("").replace(/ selected/g, "")}</select></div></div>`;
+  }
+  function wireStatusCard() {
+    const go = async (s) => { if (s && (await setStatus(ev, s))) loadEvents(ev.id); };
+    document.querySelectorAll("[data-setstatus]").forEach((b) => (b.onclick = () => go(b.dataset.setstatus)));
+    const any = $("statusAny"); if (any) any.onchange = () => { const s = any.value; any.value = ""; go(s); };
+  }
+
+  // ---------- all events ----------
+  async function pEvents() {
+    $("page").innerHTML = '<p class="muted">Loading…</p>';
+    const { data: att } = await sb.from("attendees").select("event_id");
+    const n = {}; (att || []).forEach((a) => (n[a.event_id] = (n[a.event_id] || 0) + 1));
+    const showArch = localStorage.getItem("passport-show-archived") === "1";
+    const list = events.filter((e) => showArch || e.status !== "archived");
+    const archCount = events.filter((e) => e.status === "archived").length;
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>All events</h1><div class="actions">
+        <label class="check small" style="margin:0"><input id="showArch" type="checkbox" ${showArch ? "checked" : ""}> Show archived (${archCount})</label>
+        <button class="btn sm accent" id="newEv2" type="button">+ New event</button></div></div>
+      ${list.length ? `<div class="card table-wrap"><table class="data"><thead><tr><th>Event</th><th>Date</th><th>Attendees</th><th>Status</th><th>Change status</th><th></th></tr></thead><tbody>
+        ${list.map((e) => `<tr ${e.id === (ev && ev.id) ? 'style="background:color-mix(in srgb,var(--brand) 5%,#fff)"' : ""}>
+          <td><b>${esc(e.name)}</b><div class="small muted">${esc(e.slug)}</div></td>
+          <td class="small">${esc(fmtDate(e.starts_on)) || "—"}</td><td>${n[e.id] || 0}</td>
+          <td>${statusPill(e.status)}</td>
+          <td><select data-evstatus="${e.id}" style="width:auto;padding:6px 8px;font-size:.88rem" aria-label="Status for ${esc(e.name)}">${statusOptions(e.status)}</select></td>
+          <td style="white-space:nowrap"><button class="btn sm ghost" data-open="${e.id}" type="button">Open</button>
+            ${e.status === "archived" ? `<button class="btn sm ghost" data-restore="${e.id}" type="button">Restore</button>` : `<button class="btn sm ghost" data-archive="${e.id}" type="button">Archive</button>`}
+            <button class="btn sm danger" data-delev="${e.id}" type="button">Delete</button></td></tr>`).join("")}</tbody></table></div>
+        <p class="small muted" style="margin-top:10px">${Object.values(STATUS).map((s) => `<b>${s.label}:</b> ${esc(s.help)}`).join("<br>")}</p>`
+        : `<div class="card empty"><h2>No events${archCount && !showArch ? " (archived events hidden)" : ""}</h2><button class="btn accent" id="newEv3" type="button">+ New event</button></div>`}`;
+    const byId = (id) => events.find((e) => e.id === id);
+    $("showArch").onchange = (x) => { localStorage.setItem("passport-show-archived", x.target.checked ? "1" : "0"); pEvents(); };
+    $("newEv2").onclick = () => eventModal(null); const n3 = $("newEv3"); if (n3) n3.onclick = () => eventModal(null);
+    document.querySelectorAll("[data-open]").forEach((b) => (b.onclick = () => { page = "dashboard"; loadEvents(b.dataset.open); }));
+    document.querySelectorAll("[data-evstatus]").forEach((s) => (s.onchange = async () => {
+      const e = byId(s.dataset.evstatus);
+      if (await setStatus(e, s.value)) { page = "events"; loadEvents(ev && ev.id); } else s.value = e.status;
+    }));
+    document.querySelectorAll("[data-archive]").forEach((b) => (b.onclick = async () => { if (await setStatus(byId(b.dataset.archive), "archived")) { page = "events"; loadEvents(); } }));
+    document.querySelectorAll("[data-restore]").forEach((b) => (b.onclick = async () => { if (await setStatus(byId(b.dataset.restore), "ready")) { page = "events"; loadEvents(ev && ev.id); } }));
+    document.querySelectorAll("[data-delev]").forEach((b) => (b.onclick = async () => { if (await deleteEvent(byId(b.dataset.delev))) { page = "events"; loadEvents(); } }));
   }
 
   function printWindow(title, body, css) {
@@ -432,13 +534,14 @@
         ${booths.map((b) => `<tr><td>${logoTag(b.logo_path, b.name)}</td><td><b>${esc(b.name)}</b>${b.description ? `<div class="small muted">${esc(b.description)}</div>` : ""}</td>
           <td class="small">${esc(b.question || "—")}</td><td>${b.points}</td><td>${counts[b.id] || 0}</td>
           <td><span class="pill ${b.is_active ? "ok" : ""}">${b.is_active ? "Active" : "Hidden"}</span></td>
-          <td style="white-space:nowrap"><button class="btn sm" data-qr="${b.id}" type="button">QR</button> <button class="btn sm ghost" data-edit="${b.id}" type="button">Edit</button></td></tr>`).join("")}
+          <td style="white-space:nowrap"><button class="btn sm" data-qr="${b.id}" type="button">QR</button> <button class="btn sm ghost" data-edit="${b.id}" type="button">Edit</button> <button class="btn sm danger" data-rmbooth="${b.id}" type="button" aria-label="Remove ${esc(b.name)}">Remove</button></td></tr>`).join("")}
         </tbody></table></div>`
         : `<div class="card empty"><h2>No booths yet</h2><p>Add each exhibitor booth with its logo — the logo becomes the stamp in attendees' passports.</p></div>`}`;
     $("addBooth").onclick = () => boothModal(null, booths.length);
     const pa = $("printAll"); if (pa) pa.onclick = () => printCards(booths.filter((b) => b.is_active));
     const ps = $("printStaff"); if (ps) ps.onclick = () => printStaffSheet(booths.filter((b) => b.is_active));
     document.querySelectorAll("[data-edit]").forEach((btn) => (btn.onclick = () => boothModal(booths.find((b) => b.id === btn.dataset.edit))));
+    document.querySelectorAll("[data-rmbooth]").forEach((btn) => (btn.onclick = () => removeBooth(booths.find((b) => b.id === btn.dataset.rmbooth), counts[btn.dataset.rmbooth] || 0)));
     document.querySelectorAll("[data-qr]").forEach((btn) => (btn.onclick = () => qrModal(booths.find((b) => b.id === btn.dataset.qr))));
   }
 
@@ -478,14 +581,21 @@
         if (error) return fail(error);
         m.close(); toast("New QR code generated — reprint this booth's card.", "ok"); pBooths();
       };
-      m.el.querySelector("#delBooth").onclick = async () => {
-        if (!confirm(`Delete "${b.name}"? All stamps attendees collected at this booth will also be removed.`)) return;
-        const { error } = await sb.from("booths").delete().eq("id", b.id);
-        if (error) return fail(error);
-        await removeLogo(b.logo_path);
-        m.close(); toast("Booth deleted.", "ok"); pBooths();
-      };
+      m.el.querySelector("#delBooth").onclick = async () => { if (await removeBooth(b)) m.close(); };
     }
+  }
+
+  async function removeBooth(b, visits) {
+    if (visits === undefined) { const { count } = await sb.from("stamps").select("id", { count: "exact", head: true }).eq("booth_id", b.id); visits = count || 0; }
+    const msg = visits
+      ? `Remove "${b.name}" from ${ev.name}?\n\n${visits} attendee${visits === 1 ? " has" : "s have"} this stamp. Removing the booth deletes those stamps and lowers their points.\n\nTo keep their points, cancel and use Edit → untick "Active" to hide the booth instead.`
+      : `Remove "${b.name}" from ${ev.name}? Its QR code will stop working.`;
+    if (!confirm(msg)) return false;
+    const { error } = await sb.from("booths").delete().eq("id", b.id);
+    if (error) { fail(error); return false; }
+    await removeLogo(b.logo_path);
+    toast("Booth removed.", "ok"); pBooths();
+    return true;
   }
 
   function qrModal(b) {
@@ -628,14 +738,18 @@
   // ---------- settings ----------
   function pSettings() {
     $("page").innerHTML = `<div class="pagehead"><h1>Event settings</h1></div>
+      <div style="max-width:720px">${statusCard()}</div>
       <div class="card" style="max-width:720px"><form id="setForm">${eventForm(ev)}
         <div class="row" style="justify-content:flex-end"><button class="btn" type="submit">Save changes</button></div></form>
         <div class="section-title">Attendee app address</div>
         <p class="small muted">QR codes point here. It's detected automatically from where this admin page is hosted; only change it if the attendee page lives somewhere else.</p>
         <div class="row wrap"><input id="appUrl" type="url" value="${esc(appBaseUrl())}" class="grow" style="flex:1;min-width:240px"><button class="btn ghost sm" id="saveUrl" type="button">Save</button><button class="btn ghost sm" id="resetUrl" type="button">Reset</button></div>
-        <div class="section-title">Danger zone</div>
-        <button class="btn danger" id="delEvent" type="button">Delete this event</button>
-        <p class="hint">Permanently removes the event with all booths, attendees, stamps and winners.</p></div>`;
+        <div class="section-title">Archive or delete</div>
+        <div class="row wrap">${ev.status === "archived" ? '<button class="btn ghost" id="archEvent" type="button">↩ Restore event</button>' : '<button class="btn ghost" id="archEvent" type="button">🗄 Archive event</button>'}
+        <button class="btn danger" id="delEvent" type="button">Delete this event</button></div>
+        <p class="hint">Archive hides the event but keeps all data. Delete permanently removes the event with all booths, attendees, stamps and winners.</p></div>`;
+    wireStatusCard();
+    $("archEvent").onclick = async () => { if (await setStatus(ev, ev.status === "archived" ? "ready" : "archived")) loadEvents(ev.id); };
     wireSlug($("page"), false);
     const logo = wireLogoInput($("page").querySelector(".logo-edit"), ev.logo_path);
     $("setForm").onsubmit = async (e) => {
@@ -645,17 +759,7 @@
     };
     $("saveUrl").onclick = () => { const v = $("appUrl").value.trim(); try { new URL(v); localStorage.setItem("passport-app-url", v); toast("Saved on this browser.", "ok"); } catch (e) { toast("Enter a full URL.", "err"); } };
     $("resetUrl").onclick = () => { localStorage.removeItem("passport-app-url"); $("appUrl").value = appBaseUrl(); };
-    $("delEvent").onclick = async () => {
-      const typed = prompt(`Type the event link name "${ev.slug}" to delete it permanently:`);
-      if (typed !== ev.slug) return typed !== null && toast("Name didn't match — nothing deleted.", "err");
-      const { data: bl } = await sb.from("booths").select("logo_path").eq("event_id", ev.id);
-      const { error } = await sb.from("events").delete().eq("id", ev.id);
-      if (error) return fail(error);
-      const paths = [ev.logo_path, ...(bl || []).map((b) => b.logo_path)].filter(Boolean);
-      if (paths.length) await sb.storage.from("logos").remove(paths);
-      localStorage.removeItem("passport-admin-event");
-      toast("Event deleted.", "ok"); page = "dashboard"; loadEvents();
-    };
+    $("delEvent").onclick = async () => { if (await deleteEvent(ev)) { page = "events"; loadEvents(); } };
   }
 
   // ---------- admins ----------
@@ -664,10 +768,14 @@
     if (a.error) return fail(a.error);
     $("page").innerHTML = `<div class="pagehead"><h1>Admin users</h1></div>
       <div class="grid2">
-        <div class="card"><h2 style="font-size:1.05rem">Admins</h2><div class="table-wrap"><table class="data"><tbody>
-          ${a.data.map((x) => `<tr><td>${esc(x.email)} ${x.user_id === me.id ? '<span class="pill">You</span>' : ""}</td><td><span class="pill ${x.role === "owner" ? "brand" : ""}">${x.role}</span></td>
-          <td>${myRole === "owner" && x.user_id !== me.id ? `<button class="btn sm danger" data-rm="${x.user_id}" type="button">Remove</button>` : ""}</td></tr>`).join("")}</tbody></table></div>
-          ${myRole !== "owner" ? '<p class="hint">Only the owner can remove admins.</p>' : ""}</div>
+        <div class="card"><h2 style="font-size:1.05rem">Admins <span class="pill">${a.data.length}</span></h2><div class="table-wrap"><table class="data"><thead><tr><th>Email</th><th>Role</th><th></th></tr></thead><tbody>
+          ${a.data.map((x) => `<tr><td>${esc(x.email)} ${x.user_id === me.id ? '<span class="pill">You</span>' : ""}</td><td><span class="pill ${x.role === "owner" ? "brand" : ""}">${x.role === "owner" ? "Owner" : "Admin"}</span></td>
+          <td style="white-space:nowrap;text-align:right">${myRole === "owner" && x.user_id !== me.id ? `
+            <button class="btn sm ghost" data-role="${x.user_id}" data-to="${x.role === "owner" ? "admin" : "owner"}" type="button">${x.role === "owner" ? "Make admin" : "Make owner"}</button>
+            <button class="btn sm danger" data-rm="${x.user_id}" data-email="${esc(x.email)}" type="button">Remove</button>` : ""}</td></tr>`).join("")}</tbody></table></div>
+          <p class="hint">${myRole === "owner"
+            ? "Owners can remove admins and make other people owners. You can't remove or demote yourself — make someone else an owner first, and they can do it."
+            : "Only owners can remove admins. Ask an owner if someone should lose access."}</p></div>
         <div class="card"><h2 style="font-size:1.05rem">Invite an admin</h2>
           <p class="small muted">Add their email, then send them this page's address. They choose “Create an admin account” with that same email. If they already have an account, they get access straight away.</p>
           <form id="invForm" class="row"><input id="invEmail" type="email" placeholder="name@example.com" required class="grow" style="flex:1"><button class="btn" type="submit">Invite</button></form>
@@ -683,10 +791,17 @@
     };
     document.querySelectorAll("[data-uninv]").forEach((b) => (b.onclick = async () => { await sb.from("admin_invites").delete().eq("email", b.dataset.uninv); pAdmins(); }));
     document.querySelectorAll("[data-rm]").forEach((b) => (b.onclick = async () => {
-      if (!confirm("Remove this admin's access?")) return;
+      if (!confirm(`Remove ${b.dataset.email}'s admin access? They'll no longer be able to manage events. You can invite them again later.`)) return;
       const { error } = await sb.from("admins").delete().eq("user_id", b.dataset.rm);
       if (error) return fail(error);
       toast("Admin removed.", "ok"); pAdmins();
+    }));
+    document.querySelectorAll("[data-role]").forEach((b) => (b.onclick = async () => {
+      const to = b.dataset.to;
+      if (!confirm(to === "owner" ? "Make this person an owner? Owners can remove admins and change roles." : "Change this owner to a regular admin?")) return;
+      const { error } = await sb.from("admins").update({ role: to }).eq("user_id", b.dataset.role);
+      if (error) return fail(error);
+      toast("Role updated.", "ok"); pAdmins();
     }));
   }
 
