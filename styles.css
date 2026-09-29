@@ -73,7 +73,7 @@ table.data td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertica
 table.data tr:hover td { background: #FAFBFC; }
 .table-wrap { overflow-x: auto; }
 
-.pill { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: .78rem; font-weight: 700; background: #EEF2F6; color: var(--muted); }
+.pill { display: inline-block; white-space: nowrap; padding: 2px 10px; border-radius: 99px; font-size: .78rem; font-weight: 700; background: #EEF2F6; color: var(--muted); }
 .pill.ok { background: #E3F4EC; color: var(--ok); }
 .pill.brand { background: color-mix(in srgb, var(--brand) 12%, #fff); color: var(--brand); }
 .pill.accent { background: color-mix(in srgb, var(--accent) 12%, #fff); color: var(--accent); }

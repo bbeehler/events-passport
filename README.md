@@ -69,6 +69,19 @@ To add teammates: **Admin users → Invite** their email, then send them the adm
 - **Attendees → Export CSV** gives every attendee with contact details, points and a column per booth — ready for exhibitor follow-up.
 - Set the event to **Completed** so passports and results stay visible but no more stamps can be collected. Later, **Archive** it to tidy it away.
 
+## Reports
+
+**Reports** (in the admin menu) summarizes one event, or any mix of events combined into one overall view. Use the event picker at the top: tick events individually, or use the quick picks (current event, all events, this year, completed only). Tick "Include archived events" to report on archived ones.
+
+Each report shows: attendees, active players, stamps, draw qualifiers, completion and winners; an engagement funnel; booth traffic and reach; activity over time; stamps per attendee; schools and organizations; top attendees; and winners. When several events are selected you also get a side-by-side event comparison with totals, a count of unique people and repeat attendees (matched by email), and booths with the same name combined across events.
+
+- **Summary CSV** — one row per event plus a combined total
+- **Booths CSV** — booth traffic and reach
+- **Attendees CSV** — every attendee in the selected events with the booths they visited
+- **Print / Save PDF** — a clean print layout with the AIA Canada logo; choose "Save as PDF" in the print dialog
+
+All counting happens in the database, so reports stay accurate for large events.
+
 ## Event statuses
 
 Change status from the Dashboard, Event settings, or **All events**.

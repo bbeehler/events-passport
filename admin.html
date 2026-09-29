@@ -59,6 +59,62 @@
   .colorpair input[type=color] { width: 54px; height: 44px; padding: 3px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; }
   .section-title { font-size: 1rem; margin: 22px 0 10px; padding-top: 16px; border-top: 1px solid var(--line); }
 
+  /* ----- reports ----- */
+  .rpt-filter { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .picker { position: relative; }
+  .picker .pop { position: absolute; z-index: 60; top: calc(100% + 6px); left: 0; width: min(460px, calc(100vw - 32px)); background: #fff;
+    border-radius: 12px; box-shadow: 0 12px 40px rgba(16,32,48,.2); padding: 14px; }
+  .picker .quick { gap: 6px; margin: 10px 0; }
+  .picker .quick button { border: 1px solid var(--line); background: #fff; border-radius: 99px; padding: 5px 11px; font: 600 .8rem var(--font); color: var(--brand); cursor: pointer; }
+  .picker .quick button:hover { background: var(--bg); }
+  .picker .evlist { max-height: 300px; overflow: auto; margin: 8px 0 12px; border-top: 1px solid var(--line); }
+  .picker .evlist label { padding: 9px 4px; border-bottom: 1px solid var(--line); margin: 0; font-size: .9rem; }
+  .rpt-head { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 14px; }
+  .rpt-head h2 { font-size: 1.3rem; margin: 0 0 4px; }
+  .rpt-sec { margin-top: 16px; }
+  .rpt-sec > h2 { font-size: 1.05rem; margin: 0 0 2px; }
+  .rpt-sec > .sub { font-size: .85rem; color: var(--muted); margin: 0 0 14px; }
+  .kpi small { display: block; font-size: .8rem; color: var(--muted); margin-top: 6px; font-weight: 500; line-height: 1.3; }
+  .bars { display: grid; grid-template-columns: minmax(110px, 240px) 1fr auto; gap: 4px 12px; align-items: center; }
+  .bars .lbl { font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bars .trk { height: 26px; display: flex; align-items: center; outline: none; border-radius: 4px; }
+  .bars .trk:hover, .bars .trk:focus-visible { background: color-mix(in srgb, var(--brand) 5%, transparent); }
+  .bars .trk b { display: block; height: 18px; background: var(--brand); border-radius: 0 4px 4px 0; }
+  .bars .val { font-size: .88rem; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .bars .val span { color: var(--muted); margin-left: 6px; }
+  .colchart { display: grid; grid-template-columns: 44px 1fr; padding-bottom: 26px; }
+  .colchart .yax { position: relative; height: var(--h); }
+  .colchart .yax span { position: absolute; right: 8px; transform: translateY(50%); font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .colchart .plot { position: relative; height: var(--h); border-bottom: 1px solid #C9D1DB; }
+  .colchart .gl { position: absolute; left: 0; right: 0; height: 1px; background: #EDF1F5; }
+  .colchart .cols { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 2px; }
+  .colchart .col { flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; position: relative; outline: none; }
+  .colchart .col b { display: block; width: min(24px, 80%); background: var(--brand); border-radius: 4px 4px 0 0; }
+  .colchart .col:hover, .colchart .col:focus-visible { background: color-mix(in srgb, var(--brand) 6%, transparent); }
+  .colchart .col:hover b, .colchart .col:focus-visible b { background: color-mix(in srgb, var(--brand) 78%, #fff); }
+  .colchart .xl { position: absolute; top: calc(100% + 6px); font-size: .72rem; color: var(--muted); white-space: nowrap; }
+  #vizTip { position: fixed; z-index: 900; pointer-events: none; background: #fff; border-radius: 8px; box-shadow: 0 6px 24px rgba(16,32,48,.2); padding: 8px 11px; font-size: .82rem; min-width: 130px; }
+  #vizTip .th { color: var(--muted); font-size: .76rem; margin-bottom: 4px; }
+  #vizTip .tr { display: flex; gap: 8px; align-items: baseline; }
+  #vizTip .tr i { width: 12px; height: 2px; background: var(--brand); align-self: center; flex: none; }
+  #vizTip .tr b { font-size: .95rem; }
+  #vizTip .tr span { color: var(--muted); }
+  .rpt-sec details summary { cursor: pointer; font-size: .82rem; color: var(--brand); font-weight: 600; margin-top: 10px; }
+  table.data tr.total td { font-weight: 800; border-top: 2px solid var(--line); background: #FAFBFC; }
+  table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .print-only { display: none; }
+  @media print {
+    body { background: #fff; }
+    .topbar, nav.side, .no-print, #toast, #vizTip, .rpt-sec details { display: none !important; }
+    .shell { display: block; min-height: 0; }
+    .content { padding: 0; max-width: none; }
+    .card { box-shadow: none; border: 1px solid var(--line); break-inside: avoid; }
+    .card.tbl { break-inside: auto; }
+    .print-only { display: block; }
+    .grid2 { grid-template-columns: 1fr 1fr; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
   @media (max-width: 860px) {
     .shell { grid-template-columns: 1fr; }
     nav.side { display: flex; overflow-x: auto; gap: 4px; padding: 8px; border-right: 0; border-bottom: 1px solid var(--line); position: sticky; top: 58px; z-index: 40; }
@@ -127,6 +183,7 @@
       <button data-page="booths">🏷️ Booths & QR codes</button>
       <button data-page="attendees">👥 Attendees</button>
       <button data-page="winners">🏆 Winners</button>
+      <button data-page="reports">📈 Reports</button>
       <button data-page="settings">⚙️ Event settings</button>
       <button data-page="admins">🔐 Admin users</button>
     </nav>
@@ -320,13 +377,13 @@
   function render() {
     document.querySelectorAll("#nav button").forEach((b) => b.toggleAttribute("aria-current", b.dataset.page === page));
     document.querySelectorAll("#nav button").forEach((b) => b.dataset.page === page && b.setAttribute("aria-current", "page"));
-    if (!ev && page !== "admins" && page !== "events") {
+    if (!ev && !["admins", "events", "reports"].includes(page)) {
       $("page").innerHTML = `<div class="card empty"><h2>Create your first event</h2><p>Events hold booths, attendees and winners.</p>
         <button class="btn accent" id="firstEv" type="button">+ New event</button></div>`;
       $("firstEv").onclick = () => eventModal(null);
       return;
     }
-    ({ events: pEvents, dashboard: pDashboard, booths: pBooths, attendees: pAttendees, winners: pWinners, settings: pSettings, admins: pAdmins })[page]();
+    ({ events: pEvents, dashboard: pDashboard, booths: pBooths, attendees: pAttendees, winners: pWinners, reports: pReports, settings: pSettings, admins: pAdmins })[page]();
   }
 
   // ---------- event create / edit ----------
@@ -398,20 +455,29 @@
   }
 
   // ---------- data helpers ----------
+  // Supabase returns at most 1,000 rows per request, so page through everything.
+  // `build` must return a fresh query with a unique final sort key (e.g. id) so pages don't overlap.
+  async function fetchAll(build, pageSize = 1000) {
+    const out = [];
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await build().range(from, from + pageSize - 1);
+      if (error) { fail(error); return out; }
+      out.push(...data);
+      if (data.length < pageSize) return out;
+    }
+  }
   async function fetchBooths() {
     const { data, error } = await sb.from("booths").select("*").eq("event_id", ev.id).order("sort_order").order("name");
     if (error) fail(error);
     return data || [];
   }
-  async function fetchScores() {
-    const { data, error } = await sb.from("attendee_scores").select("*").eq("event_id", ev.id).order("points", { ascending: false }).order("created_at");
-    if (error) fail(error);
-    return data || [];
+  function fetchScores() {
+    return fetchAll(() => sb.from("attendee_scores").select("*").eq("event_id", ev.id)
+      .order("points", { ascending: false }).order("created_at").order("id"));
   }
   async function fetchStampCounts() {
-    const { data, error } = await sb.from("stamps").select("booth_id").eq("event_id", ev.id);
-    if (error) fail(error);
-    const m = {}; (data || []).forEach((s) => (m[s.booth_id] = (m[s.booth_id] || 0) + 1));
+    const rows = await fetchAll(() => sb.from("stamps").select("booth_id").eq("event_id", ev.id).order("id"));
+    const m = {}; rows.forEach((s) => (m[s.booth_id] = (m[s.booth_id] || 0) + 1));
     return m;
   }
 
@@ -475,8 +541,8 @@
   // ---------- all events ----------
   async function pEvents() {
     $("page").innerHTML = '<p class="muted">Loading…</p>';
-    const { data: att } = await sb.from("attendees").select("event_id");
-    const n = {}; (att || []).forEach((a) => (n[a.event_id] = (n[a.event_id] || 0) + 1));
+    const att = await fetchAll(() => sb.from("attendees").select("event_id").order("id"));
+    const n = {}; att.forEach((a) => (n[a.event_id] = (n[a.event_id] || 0) + 1));
     const showArch = localStorage.getItem("passport-show-archived") === "1";
     const list = events.filter((e) => showArch || e.status !== "archived");
     const archCount = events.filter((e) => e.status === "archived").length;
@@ -675,8 +741,8 @@
     $("attQ").oninput = (e) => { attSearch = e.target.value; draw(); };
     $("addAtt").onclick = () => attendeeModal(null);
     $("exportCsv").onclick = async () => {
-      const [booths, stamps] = await Promise.all([fetchBooths(), sb.from("stamps").select("attendee_id,booth_id").eq("event_id", ev.id)]);
-      const has = new Set((stamps.data || []).map((s) => s.attendee_id + "|" + s.booth_id));
+      const [booths, stamps] = await Promise.all([fetchBooths(), fetchAll(() => sb.from("stamps").select("attendee_id,booth_id").eq("event_id", ev.id).order("id"))]);
+      const has = new Set(stamps.map((s) => s.attendee_id + "|" + s.booth_id));
       const head = ["First name", "Last name", "Email", "School / organization", "Stamps", "Points", "Winner", "Registered", ...booths.map((b) => b.name)];
       const lines = [head.map(csvCell).join(","), ...scores.map((a) => [a.first_name, a.last_name, a.email, a.organization, a.stamp_count, a.points, a.has_won ? "Yes" : "",
         new Date(a.created_at).toISOString(), ...booths.map((b) => (has.has(a.id + "|" + b.id) ? "✓" : ""))].map(csvCell).join(","))];
@@ -811,6 +877,337 @@
       if (error) return fail(error);
       toast("Role updated.", "ok"); pAdmins();
     }));
+  }
+
+  // ---------- reports ----------
+  const RPT_KEY = "passport-report-events";
+  let rptSel = null, rptData = null, rptSeq = 0;
+  const fmtN = (n) => Number(n || 0).toLocaleString("en-CA");
+  const fmt1 = (n) => Number(n || 0).toLocaleString("en-CA", { maximumFractionDigits: 1 });
+  const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
+
+  function rptLoadSel() {
+    if (rptSel) { [...rptSel].forEach((id) => { if (!events.some((e) => e.id === id)) rptSel.delete(id); }); return; }
+    let ids = [];
+    try { ids = JSON.parse(localStorage.getItem(RPT_KEY) || "[]"); } catch (e) {}
+    ids = ids.filter((id) => events.some((e) => e.id === id));
+    rptSel = new Set(ids.length ? ids : ev ? [ev.id] : []);
+  }
+  const rptSaveSel = () => { try { localStorage.setItem(RPT_KEY, JSON.stringify([...rptSel])); } catch (e) {} };
+
+  // one tooltip for every chart mark: marks carry data-tip='{"h":title,"r":[[value,label],...]}'
+  const vizTip = document.createElement("div");
+  vizTip.id = "vizTip"; vizTip.hidden = true; vizTip.setAttribute("role", "tooltip");
+  document.body.appendChild(vizTip);
+  function showTip(el, x, y) {
+    let d; try { d = JSON.parse(el.dataset.tip); } catch (e) { return; }
+    vizTip.replaceChildren();
+    if (d.h) { const h = document.createElement("div"); h.className = "th"; h.textContent = d.h; vizTip.appendChild(h); }
+    (d.r || []).forEach(([v, l]) => {
+      const r = document.createElement("div"); r.className = "tr";
+      const k = document.createElement("i"), b = document.createElement("b"), s = document.createElement("span");
+      b.textContent = v; s.textContent = l; r.append(k, b, s); vizTip.appendChild(r);
+    });
+    vizTip.hidden = false;
+    if (x === undefined) { const r = el.getBoundingClientRect(); x = r.left + r.width / 2; y = r.top; }
+    const w = vizTip.offsetWidth, h = vizTip.offsetHeight;
+    vizTip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)) + "px";
+    vizTip.style.top = (y - h - 12 < 8 ? y + 18 : y - h - 12) + "px";
+  }
+  document.addEventListener("pointermove", (e) => { const t = e.target.closest && e.target.closest("[data-tip]"); if (t) showTip(t, e.clientX, e.clientY); else vizTip.hidden = true; });
+  document.addEventListener("focusin", (e) => { const t = e.target.closest && e.target.closest("[data-tip]"); if (t) showTip(t); else vizTip.hidden = true; });
+  document.addEventListener("scroll", () => (vizTip.hidden = true), true);
+  const tipAttr = (h, rows) => `data-tip="${esc(JSON.stringify({ h, r: rows }))}" tabindex="0"`;
+
+  function niceTicks(max) {
+    if (max <= 4) return Array.from({ length: Math.max(1, max) + 1 }, (_, i) => i);
+    const raw = max / 4, mag = 10 ** Math.floor(Math.log10(raw)), norm = raw / mag;
+    const step = Math.max(1, (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10) * mag);
+    const out = []; for (let t = 0; t < max + step; t += step) { out.push(t); if (t >= max) break; }
+    return out;
+  }
+  // single-series column chart; buckets: [{short, value, tip:{h, r}}]
+  function columnChart(buckets, height = 190) {
+    const max = Math.max(1, ...buckets.map((b) => b.value));
+    const ticks = niceTicks(max), top = ticks[ticks.length - 1];
+    const every = Math.ceil(buckets.length / (matchMedia("(max-width: 600px)").matches ? 6 : 12));
+    return `<div class="colchart" style="--h:${height}px">
+      <div class="yax">${ticks.map((t) => `<span style="bottom:${(100 * t) / top}%">${fmtN(t)}</span>`).join("")}</div>
+      <div class="plot">${ticks.slice(1).map((t) => `<i class="gl" style="bottom:${(100 * t) / top}%"></i>`).join("")}
+        <div class="cols">${buckets.map((b, i) => `<div class="col" ${tipAttr(b.tip.h, b.tip.r)} aria-label="${esc(b.tip.h)}: ${fmtN(b.value)}">
+          <b style="height:${(100 * b.value) / top}%"></b>${i % every === 0 ? `<span class="xl">${esc(b.short)}</span>` : ""}</div>`).join("")}</div></div></div>`;
+  }
+  // single-series horizontal bars; rows: [{label, value, note, tip}]
+  function barList(rows, max) {
+    max = Math.max(1, max ?? Math.max(...rows.map((r) => r.value)));
+    return `<div class="bars">${rows.map((r) => `<div class="lbl" title="${esc(r.label)}">${esc(r.label)}${r.tag || ""}</div>
+      <div class="trk" ${tipAttr(r.label, r.tip)}><b style="width:${Math.max(r.value ? 0.6 : 0, (100 * r.value) / max)}%"></b></div>
+      <div class="val">${fmtN(r.value)}${r.note ? `<span>${esc(r.note)}</span>` : ""}</div>`).join("")}</div>`;
+  }
+
+  async function pReports() {
+    rptLoadSel();
+    $("page").innerHTML = `
+      <div class="pagehead"><h1>Reports</h1>
+        <div class="actions no-print">
+          <button class="btn sm ghost" id="rCsvSummary" type="button">⬇ Summary CSV</button>
+          <button class="btn sm ghost" id="rCsvBooths" type="button">⬇ Booths CSV</button>
+          <button class="btn sm ghost" id="rCsvAtt" type="button">⬇ Attendees CSV</button>
+          <button class="btn sm" id="rPrint" type="button">🖨 Print / Save PDF</button></div></div>
+      <div class="rpt-filter no-print">
+        <div class="picker" id="rPicker">
+          <button class="btn ghost" id="rPickBtn" type="button" aria-haspopup="dialog" aria-expanded="false"></button>
+          <div class="pop hidden" id="rPop" role="dialog" aria-label="Choose events to report on">
+            <input id="rSearch" type="text" placeholder="Search events…" aria-label="Search events">
+            <div class="row wrap quick">
+              <button type="button" data-q="current">Current event</button><button type="button" data-q="all">All events</button>
+              <button type="button" data-q="year">This year</button><button type="button" data-q="completed">Completed only</button>
+              <button type="button" data-q="none">Clear</button></div>
+            <label class="check small" style="margin:0"><input type="checkbox" id="rArch"> Include archived events</label>
+            <div class="evlist" id="rList"></div>
+            <div class="row" style="justify-content:flex-end"><button class="btn sm" id="rDone" type="button">Done</button></div>
+          </div>
+        </div>
+        <span class="small muted">Pick one event for its own report, or several to combine them into one overall view.</span>
+      </div>
+      <div id="rBody"></div>`;
+
+    const pop = $("rPop"), btn = $("rPickBtn");
+    const open = (o) => { pop.classList.toggle("hidden", !o); btn.setAttribute("aria-expanded", o); if (o) { drawList(); $("rSearch").focus(); } };
+    btn.onclick = () => open(pop.classList.contains("hidden"));
+    $("rDone").onclick = () => open(false);
+    pop.addEventListener("keydown", (e) => { if (e.key === "Escape") { open(false); btn.focus(); } });
+    document.addEventListener("pointerdown", function outside(e) {
+      if (!document.body.contains(pop)) return document.removeEventListener("pointerdown", outside);
+      if (!e.target.closest("#rPicker")) open(false);
+    });
+
+    const visibleEvents = () => {
+      const q = $("rSearch").value.trim().toLowerCase(), arch = $("rArch").checked;
+      return events.filter((e) => (arch || e.status !== "archived" || rptSel.has(e.id)) && (!q || e.name.toLowerCase().includes(q)));
+    };
+    function drawList() {
+      $("rList").innerHTML = visibleEvents().map((e) => `<label class="check"><input type="checkbox" value="${e.id}" ${rptSel.has(e.id) ? "checked" : ""}>
+        <span class="grow">${esc(e.name)}<span class="small muted"> · ${esc(fmtDate(e.starts_on) || "no date")}</span></span>${statusPill(e.status)}</label>`).join("")
+        || '<p class="small muted" style="padding:8px 4px">No matching events.</p>';
+      $("rList").querySelectorAll("input").forEach((i) => (i.onchange = () => { i.checked ? rptSel.add(i.value) : rptSel.delete(i.value); changed(); }));
+    }
+    function label() {
+      const n = rptSel.size, one = n === 1 && events.find((e) => rptSel.has(e.id));
+      btn.textContent = n === 0 ? "Choose events ▾" : one ? `Event: ${one.name} ▾` : `${n} events combined ▾`;
+    }
+    let timer;
+    function changed() { rptSaveSel(); label(); clearTimeout(timer); timer = setTimeout(runReport, 300); }
+    $("rSearch").oninput = drawList;
+    $("rArch").onchange = drawList;
+    pop.querySelectorAll("[data-q]").forEach((b) => (b.onclick = () => {
+      const q = b.dataset.q, yr = new Date().getFullYear(), arch = $("rArch").checked;
+      const pool = events.filter((e) => arch || e.status !== "archived");
+      const pick = { current: ev ? [ev] : [], all: pool, none: [],
+        year: pool.filter((e) => new Date(e.starts_on ? e.starts_on + "T12:00:00" : e.created_at).getFullYear() === yr),
+        completed: pool.filter((e) => e.status === "completed") }[q];
+      rptSel = new Set(pick.map((e) => e.id));
+      drawList(); changed();
+    }));
+
+    $("rPrint").onclick = () => { if (!rptData) return toast("Choose at least one event first.", "err"); vizTip.hidden = true; window.print(); };
+    $("rCsvSummary").onclick = () => exportSummary();
+    $("rCsvBooths").onclick = () => exportBooths();
+    $("rCsvAtt").onclick = () => exportAttendees();
+    label();
+    rptData = null;
+    await runReport();
+  }
+
+  async function runReport() {
+    const body = $("rBody"); if (!body) return;
+    const ids = [...rptSel], seq = ++rptSeq;
+    if (!ids.length) {
+      rptData = null;
+      body.innerHTML = `<div class="card empty"><h2>Choose events to report on</h2><p>Select a single event for its own report, or several events to see them combined.</p></div>`;
+      return;
+    }
+    if (rptData) body.style.opacity = 0.5; else body.innerHTML = '<p class="muted">Building report…</p>';
+    const { data, error } = await sb.rpc("report_data", { p_events: ids });
+    if (seq !== rptSeq || !$("rBody")) return;          // a newer selection is already loading
+    body.style.opacity = 1;
+    if (error) return fail(error, "Couldn't build the report");
+    rptData = data;
+    renderReport(data);
+  }
+
+  function totals(d) {
+    const s = (k) => d.events.reduce((a, e) => a + (e[k] || 0), 0);
+    return { attendees: s("attendees"), players: s("players"), stamps: s("stamps"), points: s("points"), qualified: s("qualified"),
+      completed: s("completed"), winners: s("winners"), booths: s("booths") };
+  }
+  function boothGroups(d) {
+    const att = Object.fromEntries(d.events.map((e) => [e.id, e.attendees]));
+    const g = new Map();
+    d.booths.forEach((b) => {
+      const k = b.name.trim().toLowerCase();
+      const x = g.get(k) || { name: b.name.trim(), visits: 0, events: new Set(), base: 0, hidden: 0 };
+      if (x.name === x.name.toLowerCase() && b.name.trim() !== b.name.trim().toLowerCase()) x.name = b.name.trim();
+      x.visits += b.visits;
+      if (!x.events.has(b.event_id)) { x.events.add(b.event_id); x.base += att[b.event_id] || 0; }
+      if (!b.is_active) x.hidden++;
+      g.set(k, x);
+    });
+    return [...g.values()].sort((a, b) => b.visits - a.visits || a.name.localeCompare(b.name));
+  }
+
+  function activityBuckets(d) {
+    const st = d.stamp_hours.map((x) => [new Date(x.h), x.n]), rg = d.reg_hours.map((x) => [new Date(x.h), x.n]);
+    const times = [...st, ...rg].map((x) => x[0].getTime());
+    if (!times.length) return null;
+    const min = Math.min(...times), max = Math.max(...times), spanH = (max - min) / 3.6e6;
+    const hr = (t) => t.toLocaleTimeString("en-CA", { hour: "numeric" });
+    const day = (t) => t.toLocaleDateString("en-CA", { month: "short", day: "numeric" });
+    const mk = (keyOf, keys, short, title) => {
+      const S = new Map(), R = new Map();
+      st.forEach(([t, n]) => S.set(keyOf(t), (S.get(keyOf(t)) || 0) + n));
+      rg.forEach(([t, n]) => R.set(keyOf(t), (R.get(keyOf(t)) || 0) + n));
+      return keys.map((k) => ({ short: short(k), value: S.get(k) || 0, regs: R.get(k) || 0,
+        tip: { h: title(k), r: [[fmtN(S.get(k) || 0), "stamps"], [fmtN(R.get(k) || 0), "registrations"]] } }));
+    };
+    if (spanH <= 72) {
+      const keys = []; for (let t = min; t <= max; t += 3.6e6) keys.push(t);
+      let lastDay = "";
+      return { mode: "hour", title: "Stamps collected per hour", buckets: mk((t) => t.getTime(), keys,
+        (k) => { const t = new Date(k), dd = day(t); const s = dd !== lastDay && spanH > 20 ? `${dd} ${hr(t)}` : hr(t); lastDay = dd; return s; },
+        (k) => `${day(new Date(k))}, ${hr(new Date(k))}`) };
+    }
+    if (spanH <= 24 * 31) {
+      const ymd = (t) => `${t.getFullYear()}-${t.getMonth()}-${t.getDate()}`;
+      const keys = [], d0 = new Date(min); d0.setHours(0, 0, 0, 0);
+      for (const t = d0; t.getTime() <= max; t.setDate(t.getDate() + 1)) keys.push(ymd(t));
+      const toDate = (k) => { const [y, m, dd] = k.split("-").map(Number); return new Date(y, m, dd); };
+      return { mode: "day", title: "Stamps collected per day", buckets: mk(ymd, keys, (k) => day(toDate(k)), (k) => toDate(k).toLocaleDateString("en-CA", { weekday: "short", month: "short", day: "numeric", year: "numeric" })) };
+    }
+    const all = mk((t) => t.getHours(), [...Array(24).keys()], (h) => hr(new Date(2000, 0, 1, h)), (h) => `${hr(new Date(2000, 0, 1, h))} – ${hr(new Date(2000, 0, 1, h + 1))}`);
+    const used = all.map((b, i) => (b.value || b.regs ? i : -1)).filter((i) => i >= 0);
+    return { mode: "hod", title: "Busiest times of day (all selected events)", buckets: all.slice(Math.min(...used), Math.max(...used) + 1) };
+  }
+
+  function renderReport(d) {
+    const E = d.events, multi = E.length > 1, T = totals(d);
+    const avg = T.players ? T.stamps / T.players : 0;
+    const dates = E.map((e) => e.starts_on).filter(Boolean).sort();
+    const single = !multi && E[0];
+    const head = single
+      ? `<h2>${esc(single.name)}</h2><div class="small muted">${statusPill(single.status)} ${esc([fmtDate(single.starts_on), single.venue].filter(Boolean).join(" · "))} · ${single.booths} booth${single.booths === 1 ? "" : "s"}</div>`
+      : `<h2>Combined report · ${E.length} events</h2><div class="small muted">${dates.length ? esc(fmtDate(dates[0]) + (dates.length > 1 ? " – " + fmtDate(dates[dates.length - 1]) : "")) + " · " : ""}${E.map((e) => esc(e.name)).join(" · ")}</div>`;
+
+    let html = `<div class="rpt-head"><div>${head}</div>
+      <div style="text-align:right"><div class="print-only">${P.orgLogoTag("", "height:40px;max-width:180px;object-fit:contain")}</div>
+      <div class="small muted">Generated ${esc(new Date().toLocaleString("en-CA", { dateStyle: "medium", timeStyle: "short" }))}</div></div></div>
+      <div class="kpis">
+        <div class="card kpi"><b>${fmtN(T.attendees)}</b><span>Attendees registered</span><small>${multi ? `${fmtN(d.unique_people)} unique people · ${fmtN(d.repeat_people)} came to 2+ events` : `across ${single.booths} booth${single.booths === 1 ? "" : "s"}`}</small></div>
+        <div class="card kpi"><b>${fmtN(T.players)}</b><span>Active players</span><small>${pct(T.players, T.attendees)}% collected at least one stamp</small></div>
+        <div class="card kpi"><b>${fmtN(T.stamps)}</b><span>Stamps collected</span><small>${fmt1(avg)} per active player</small></div>
+        <div class="card kpi"><b>${fmtN(T.qualified)}</b><span>Qualified for draw</span><small>${pct(T.qualified, T.attendees)}% of attendees${single ? ` · ${single.min_stamps}+ stamps needed` : ""}</small></div>
+        <div class="card kpi"><b>${fmtN(T.completed)}</b><span>Visited every booth</span><small>${pct(T.completed, T.attendees)}% of attendees</small></div>
+        <div class="card kpi"><b>${fmtN(T.winners)}</b><span>Winners drawn</span><small>${T.winners ? "listed below" : "none yet"}</small></div>
+      </div>`;
+
+    if (!T.attendees) {
+      $("rBody").innerHTML = html + `<div class="card empty rpt-sec"><h2>No attendees yet</h2><p>Once people register and collect stamps, their activity will appear here.</p></div>`;
+      return;
+    }
+
+    // engagement funnel
+    const funnel = [["Registered", T.attendees], ["Collected a stamp", T.players], ["Qualified for the draw", T.qualified], ["Visited every booth", T.completed]];
+    html += `<div class="card rpt-sec"><h2>Engagement</h2><p class="sub">How far attendees got, as a share of everyone who registered.</p>
+      ${barList(funnel.map(([l, v]) => ({ label: l, value: v, note: `${pct(v, T.attendees)}%`, tip: [[fmtN(v), "attendees"], [`${pct(v, T.attendees)}%`, "of registered"]] })), T.attendees)}</div>`;
+
+    // per-event comparison
+    if (multi) {
+      html += `<div class="card rpt-sec tbl"><h2>Event comparison</h2><p class="sub">Each selected event side by side, with combined totals.</p><div class="table-wrap"><table class="data">
+        <thead><tr><th>Event</th><th>Status</th><th class="num">Booths</th><th class="num">Attendees</th><th class="num">Active</th><th class="num">Stamps</th><th class="num">Avg / player</th><th class="num">Qualified</th><th class="num">Visited all</th><th class="num">Winners</th></tr></thead><tbody>
+        ${E.map((e) => `<tr><td><b>${esc(e.name)}</b><div class="small muted">${esc(fmtDate(e.starts_on) || "")}</div></td><td>${statusPill(e.status)}</td>
+          <td class="num">${e.booths}</td><td class="num">${fmtN(e.attendees)}</td><td class="num">${pct(e.players, e.attendees)}%</td><td class="num">${fmtN(e.stamps)}</td>
+          <td class="num">${fmt1(e.players ? e.stamps / e.players : 0)}</td><td class="num">${fmtN(e.qualified)}</td><td class="num">${pct(e.completed, e.attendees)}%</td><td class="num">${e.winners}</td></tr>`).join("")}
+        <tr class="total"><td>All selected</td><td></td><td class="num">${T.booths}</td><td class="num">${fmtN(T.attendees)}</td><td class="num">${pct(T.players, T.attendees)}%</td><td class="num">${fmtN(T.stamps)}</td>
+          <td class="num">${fmt1(avg)}</td><td class="num">${fmtN(T.qualified)}</td><td class="num">${pct(T.completed, T.attendees)}%</td><td class="num">${T.winners}</td></tr>
+        </tbody></table></div></div>`;
+    }
+
+    // booth traffic
+    const groups = boothGroups(d);
+    html += `<div class="card rpt-sec"><h2>Booth traffic</h2><p class="sub">Stamps collected at each booth. Reach is the share of attendees who visited${multi ? ". Booths with the same name are combined across events." : "."}</p>
+      ${groups.length ? barList(groups.map((g) => ({
+        label: g.name, value: g.visits, note: `${pct(g.visits, g.base)}% reach`,
+        tag: `${multi ? ` <span class="small muted">· ${g.events.size} event${g.events.size === 1 ? "" : "s"}</span>` : ""}${g.hidden && !multi ? ' <span class="pill">Hidden</span>' : ""}`,
+        tip: [[fmtN(g.visits), "stamps"], [`${pct(g.visits, g.base)}%`, "of attendees visited"], ...(multi ? [[String(g.events.size), g.events.size === 1 ? "event" : "events"]] : [])],
+      }))) : '<p class="muted">No booths in the selected events.</p>'}</div>`;
+
+    // activity + distribution
+    const act = activityBuckets(d);
+    const dist = []; const dm = new Map(d.distribution.map((x) => [x.stamps, x.n]));
+    const maxS = Math.max(0, ...d.distribution.map((x) => x.stamps));
+    for (let s = 0; s <= maxS; s++) { const n = dm.get(s) || 0; dist.push({ short: String(s), value: n, tip: { h: `${s} stamp${s === 1 ? "" : "s"}`, r: [[fmtN(n), "attendees"], [`${pct(n, T.attendees)}%`, "of registered"]] } }); }
+    const dataTable = (cols, rows) => `<details><summary>View as table</summary><div class="table-wrap"><table class="data" style="margin-top:8px"><thead><tr>${cols.map((c, i) => `<th class="${i ? "num" : ""}">${c}</th>`).join("")}</tr></thead>
+      <tbody>${rows.map((r) => `<tr>${r.map((c, i) => `<td class="${i ? "num" : ""}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details>`;
+    html += `<div class="grid2 rpt-sec" style="align-items:start">
+      <div class="card"><h2 style="font-size:1.05rem;margin:0 0 2px">${act ? esc(act.title) : "Activity"}</h2>
+        <p class="sub small muted" style="margin:0 0 14px">${act && act.mode === "hod" ? "Events are far apart, so activity is grouped by hour of day. " : ""}Hover a column for stamps and registrations.</p>
+        ${act && act.buckets.some((b) => b.value) ? columnChart(act.buckets) + dataTable(["Time", "Stamps", "Registrations"], act.buckets.map((b) => [b.tip.h, fmtN(b.value), fmtN(b.regs)])) : '<p class="muted">No stamps collected yet.</p>'}</div>
+      <div class="card"><h2 style="font-size:1.05rem;margin:0 0 2px">Stamps per attendee</h2>
+        <p class="sub small muted" style="margin:0 0 14px">How many attendees ended with each number of stamps${multi ? " (events may have different numbers of booths)" : ""}.</p>
+        ${columnChart(dist)}${dataTable(["Stamps", "Attendees", "% of registered"], dist.map((b) => [b.short, fmtN(b.value), pct(b.value, T.attendees) + "%"]))}</div></div>`;
+
+    // schools
+    const orgs = d.orgs, topOrgs = orgs.slice(0, 15);
+    html += `<div class="card rpt-sec tbl"><h2>Schools & organizations</h2><p class="sub">Where attendees came from${orgs.length > 15 ? ` · top 15 of ${orgs.length}` : ""}${d.no_org ? ` · ${fmtN(d.no_org)} attendee${d.no_org === 1 ? "" : "s"} didn't say` : ""}.</p>
+      ${orgs.length ? `<div class="table-wrap"><table class="data"><thead><tr><th>School / organization</th><th class="num">Attendees</th><th class="num">Active</th><th class="num">Stamps</th><th class="num">Avg / attendee</th>${multi ? '<th class="num">Events</th>' : ""}</tr></thead><tbody>
+        ${topOrgs.map((o) => `<tr><td><b>${esc(o.name)}</b></td><td class="num">${fmtN(o.attendees)}</td><td class="num">${pct(o.players, o.attendees)}%</td><td class="num">${fmtN(o.stamps)}</td><td class="num">${fmt1(o.stamps / o.attendees)}</td>${multi ? `<td class="num">${o.events}</td>` : ""}</tr>`).join("")}
+        </tbody></table></div>` : '<p class="muted">No attendees gave a school or organization.</p>'}</div>`;
+
+    // top attendees + winners
+    html += `<div class="grid2 rpt-sec" style="align-items:start">
+      <div class="card tbl"><h2 style="font-size:1.05rem;margin:0 0 2px">Top attendees</h2><p class="sub small muted" style="margin:0 0 10px">Ranked by points${multi ? " across all selected events (matched by email)" : ""}.</p>
+        ${d.people.length ? `<div class="table-wrap"><table class="data"><thead><tr><th>#</th><th>Name</th>${multi ? '<th class="num">Events</th>' : ""}<th class="num">Stamps</th><th class="num">Points</th></tr></thead><tbody>
+          ${d.people.slice(0, 10).map((p, i) => `<tr><td>${i + 1}</td><td><b>${esc(p.name)}</b> ${p.won ? '<span class="pill accent">Winner</span>' : ""}<div class="small muted">${esc(p.org || p.email)}</div></td>
+            ${multi ? `<td class="num">${p.events}</td>` : ""}<td class="num">${p.stamps}</td><td class="num"><b>${p.points}</b></td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">No stamps collected yet.</p>'}</div>
+      <div class="card tbl"><h2 style="font-size:1.05rem;margin:0 0 2px">Winners</h2><p class="sub small muted" style="margin:0 0 10px">${d.winners.length} drawn.</p>
+        ${d.winners.length ? `<div class="table-wrap"><table class="data"><thead><tr><th>Winner</th>${multi ? "<th>Event</th>" : ""}<th>Prize</th></tr></thead><tbody>
+          ${d.winners.map((w) => `<tr><td><b>${esc(w.first_name)} ${esc(w.last_name)}</b><div class="small muted">${esc(w.email)}</div></td>
+            ${multi ? `<td class="small">${esc((E.find((e) => e.id === w.event_id) || {}).name || "")}</td>` : ""}<td class="small">${esc(w.prize || "—")}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">No winners drawn yet.</p>'}</div></div>`;
+
+    $("rBody").innerHTML = html;
+  }
+
+  // ---------- report exports ----------
+  const rptName = () => {
+    const E = rptData.events;
+    return E.length === 1 ? E[0].slug : `combined-${E.length}-events`;
+  };
+  function csvDownload(name, head, rows) {
+    downloadFile(name, "﻿" + [head, ...rows].map((r) => r.map(csvCell).join(",")).join("\n"), "text/csv");
+  }
+  function exportSummary() {
+    if (!rptData) return toast("Choose at least one event first.", "err");
+    const d = rptData, T = totals(d);
+    const row = (name, slug, status, date, venue, x) => [name, slug, status, date, venue, x.booths, x.attendees, x.players, pct(x.players, x.attendees) + "%",
+      x.stamps, fmt1(x.players ? x.stamps / x.players : 0), x.points, x.qualified, x.completed, pct(x.completed, x.attendees) + "%", x.winners];
+    const rows = d.events.map((e) => row(e.name, e.slug, STATUS[e.status].label, e.starts_on || "", e.venue || "", e));
+    if (d.events.length > 1) rows.push(row(`All selected (${d.unique_people} unique people, ${d.repeat_people} at 2+ events)`, "", "", "", "", T));
+    csvDownload(`${rptName()}-summary.csv`, ["Event", "Link name", "Status", "Start date", "Venue", "Booths", "Attendees", "Active players", "Active %",
+      "Stamps", "Avg stamps per player", "Points", "Qualified for draw", "Visited every booth", "Completion %", "Winners"], rows);
+  }
+  function exportBooths() {
+    if (!rptData) return toast("Choose at least one event first.", "err");
+    const multi = rptData.events.length > 1;
+    const names = Object.fromEntries(rptData.events.map((e) => [e.id, e.name]));
+    csvDownload(`${rptName()}-booths.csv`, ["Booth", "Events", "Stamps collected", "Attendees at those events", "Reach %"],
+      boothGroups(rptData).map((g) => [g.name + (g.hidden && !multi ? " (hidden)" : ""), [...g.events].map((id) => names[id]).join("; "), g.visits, g.base, pct(g.visits, g.base) + "%"]));
+  }
+  async function exportAttendees() {
+    if (!rptData) return toast("Choose at least one event first.", "err");
+    const { data, error } = await sb.rpc("report_attendees", { p_events: rptData.events.map((e) => e.id) });
+    if (error) return fail(error, "Export failed");
+    csvDownload(`${rptName()}-attendees.csv`, ["Event", "First name", "Last name", "Email", "School / organization", "Registered", "Stamps", "Points", "Winner", "Booths visited"],
+      data.map((a) => [a.event_name, a.first_name, a.last_name, a.email, a.organization, new Date(a.registered_at).toISOString(), a.stamps, a.points, a.winner ? "Yes" : "", a.booths_visited]));
   }
 
   boot();
