@@ -261,7 +261,6 @@
     return `<div class="vend"><div class="vlogo">${img}</div><div class="vbody">
       <div class="vname">${esc(b.name)}</div>
       <div class="vmeta">${b.booth_number ? `<span class="pill brand">Booth ${esc(b.booth_number)}</span>` : ""}${passport ? (st.has(b.id) ? '<span class="pill ok">✓ Visited</span>' : '<span class="pill">Not visited yet</span>') : ""}</div>
-      ${b.description ? `<p>${esc(b.description)}</p>` : ""}
       ${web || onMap ? `<div class="vlinks">${onMap ? `<button class="linkbtn" type="button" data-showmap="${b.id}">📍 Show on map</button>` : ""}${web ? `<a href="${esc(web)}" target="_blank" rel="noopener noreferrer">Website ↗</a>` : ""}</div>` : ""}
     </div></div>`;
   }
@@ -315,7 +314,7 @@
       <div class="vlist"></div></div>`;
     const draw = () => {
       const q = (root.querySelector(".vsearch") || {}).value?.trim().toLowerCase() || "", st = visited();
-      const rows = list.filter((b) => !q || `${b.name} ${b.booth_number || ""} ${b.description || ""}`.toLowerCase().includes(q));
+      const rows = list.filter((b) => !q || `${b.name} ${b.booth_number || ""}`.toLowerCase().includes(q));
       root.querySelector(".vlist").innerHTML = rows.map((b) => vendorHtml(b, st, true)).join("") || '<p class="muted">No vendors match.</p>';
       root.querySelectorAll("[data-showmap]").forEach((x) => (x.onclick = () => focusPin(x.dataset.showmap)));
     };

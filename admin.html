@@ -628,7 +628,7 @@
         <div class="actions">${booths.length ? `<button class="btn ghost sm" id="printAll" type="button">🖨️ Print QR cards</button><button class="btn ghost sm" id="printStaff" type="button">Print staff sheet</button>` : ""}
         <button class="btn sm accent" id="addBooth" type="button">+ Add booth</button></div></div>
       ${booths.length ? `<div class="card table-wrap"><table class="data"><thead><tr><th></th><th>Booth #</th><th>Booth</th><th>Question for staff to ask</th><th>Points</th><th>Visits</th><th>Status</th><th></th></tr></thead><tbody>
-        ${booths.map((b) => `<tr><td>${logoTag(b.logo_path, b.name)}</td><td>${b.booth_number ? `<span class="pill brand">${esc(b.booth_number)}</span>` : '<span class="small muted">—</span>'}</td><td><b>${esc(b.name)}</b>${b.description ? `<div class="small muted">${esc(b.description)}</div>` : ""}</td>
+        ${booths.map((b) => `<tr><td>${logoTag(b.logo_path, b.name)}</td><td>${b.booth_number ? `<span class="pill brand">${esc(b.booth_number)}</span>` : '<span class="small muted">—</span>'}</td><td><b>${esc(b.name)}</b></td>
           <td class="small">${esc(b.question || "—")}</td><td>${b.points}</td><td>${counts[b.id] || 0}</td>
           <td><span class="pill ${b.is_active ? "ok" : ""}">${b.is_active ? "Active" : "Hidden"}</span></td>
           <td style="white-space:nowrap"><button class="btn sm" data-qr="${b.id}" type="button">QR</button> <button class="btn sm ghost" data-edit="${b.id}" type="button">Edit</button> <button class="btn sm danger" data-rmbooth="${b.id}" type="button" aria-label="Remove ${esc(b.name)}">Remove</button></td></tr>`).join("")}
@@ -646,8 +646,6 @@
     const m = modal(`<h2>${b ? "Edit booth" : "Add booth"}</h2><form id="bForm">
       <div class="row wrap"><div class="field grow" style="flex:3;min-width:200px"><label for="bName">Booth / exhibitor name</label><input id="bName" type="text" maxlength="120" value="${esc(b && b.name)}" required></div>
         <div class="field" style="flex:1;min-width:110px"><label for="bNum">Booth number</label><input id="bNum" type="text" maxlength="20" placeholder="e.g. 112" value="${esc(b && b.booth_number)}"></div></div>
-      <div class="field"><label for="bDesc">Description <span class="muted">(shown to attendees in the vendor list)</span></label><textarea id="bDesc" maxlength="500" rows="3">${esc(b && b.description)}</textarea>
-        <div class="hint">Up to 500 characters.</div></div>
       <div class="field"><label for="bWeb">Website <span class="muted">(optional, shown in the vendor list)</span></label><input id="bWeb" type="text" inputmode="url" autocomplete="url" maxlength="300" placeholder="https://example.com" value="${esc(b && b.website)}"></div>
       <div class="field"><label for="bQ">Question for booth staff to ask</label><textarea id="bQ" placeholder="e.g. Name one career path in collision repair.">${esc(b && b.question)}</textarea>
         <div class="hint">Printed on the staff sheet. Staff reveal the QR once the attendee answers.</div></div>
@@ -668,7 +666,7 @@
       if (web && !/^https?:\/\//i.test(web)) web = "https://" + web;
       if (web && !safeUrl(web)) { btn.disabled = false; return toast("That website address doesn't look right.", "err"); }
       const row = { name: val(m.el, "#bName"), booth_number: val(m.el, "#bNum") || null, website: web ? safeUrl(web) : null,
-        description: val(m.el, "#bDesc") || null, question: val(m.el, "#bQ") || null,
+        question: val(m.el, "#bQ") || null,
         points: Math.max(0, parseInt(val(m.el, "#bPts")) || 0), sort_order: parseInt(val(m.el, "#bSort")) || 0, is_active: m.el.querySelector("#bActive").checked };
       if (!row.name) { btn.disabled = false; return toast("Enter a booth name.", "err"); }
       if (logo.file()) { const p = await uploadLogo(logo.file(), "booths/" + ev.id); if (!p) { btn.disabled = false; return; } row.logo_path = p; if (b) await removeLogo(b.logo_path); }

@@ -86,7 +86,7 @@ All counting happens in the database, so reports stay accurate for large events.
 
 - **Booth numbers & websites:** add them in **Booths & QR codes → Edit**. Booth numbers appear on stamps, QR cards, the staff sheet and the vendor list.
 - **Floor plan:** **Floor plan → Upload** accepts PNG, JPG, SVG or PDF (the first page of a PDF is used). Then select each booth in the list and click its spot on the plan; drag pins to adjust. Replacing the plan keeps the pins, so check they still line up.
-- **What attendees see:** a **Map** tab (pins turn red with a ✓ once visited; tap a pin for the vendor's details) and a **Vendors** tab (logo, booth number, description, website, visited status, "Show on map").
+- **What attendees see:** a **Map** tab (pins turn red with a ✓ once visited; tap a pin to see which business is there) and a **Vendors** tab (business name, logo, booth number, website, visited status, "Show on map").
 - **Before launch:** with "Show the floor plan and vendor list before launch" ticked in Event settings (on by default), the "Opening soon" page shows the map and vendor list. Booth QR codes and staff questions are never shown.
 
 ## Event statuses
