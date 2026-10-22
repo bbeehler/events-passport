@@ -21,7 +21,7 @@
   .wrap { max-width: 560px; margin: -44px auto 0; padding: 0 16px; position: relative; z-index: 2; }
 
   .tabs { display: flex; gap: 6px; background: var(--surface); padding: 5px; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 14px; }
-  .tabs button { flex: 1; border: 0; background: transparent; padding: 10px; border-radius: 9px; font: 700 .95rem var(--font); color: var(--muted); cursor: pointer; }
+  .tabs button { flex: 1; min-width: 0; border: 0; background: transparent; padding: 10px 2px; border-radius: 9px; font: 700 .86rem var(--font); color: var(--muted); cursor: pointer; white-space: nowrap; }
   .tabs button[aria-selected=true] { background: var(--brand); color: #fff; }
 
   .progress-card h2 { font-size: 1.15rem; margin-bottom: 2px; }
@@ -42,6 +42,37 @@
   .stamp .disc img { width: 70%; height: 70%; object-fit: contain; filter: grayscale(1); opacity: .35; }
   .stamp .disc .logo-ph { width: 100%; height: 100%; font-size: 1.3rem; opacity: .35; background: #fff; }
   .stamp .name { font-size: .78rem; font-weight: 600; color: var(--muted); line-height: 1.2; }
+  .stamp .num { display: block; font-size: .7rem; font-weight: 700; color: var(--muted); opacity: .8; margin-top: 2px; }
+  /* floor plan */
+  .zb { width: 36px; height: 36px; border-radius: 9px; border: 1.5px solid var(--line); background: #fff; font: 700 1.15rem var(--font); color: var(--brand); cursor: pointer; }
+  .mapview { overflow: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; max-height: 62vh; -webkit-overflow-scrolling: touch; }
+  .mapinner { position: relative; min-width: 100%; }
+  .mapinner img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+  .mpin { position: absolute; transform: translate(-50%, -50%); min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px; border: 2px solid var(--brand);
+    background: #fff; color: var(--brand); font: 800 .7rem/22px var(--font); box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: pointer; white-space: nowrap; }
+  .mpin::before { content: ""; position: absolute; inset: -9px; }             /* bigger tap target */
+  .mpin.on { background: var(--accent); border-color: #fff; color: #fff; }
+  .mpin.on::after { content: "✓"; position: absolute; right: -7px; top: -8px; width: 15px; height: 15px; border-radius: 50%; background: var(--ok); color: #fff;
+    font-size: 9px; line-height: 15px; text-align: center; border: 1.5px solid #fff; }
+  .mpin.sel { z-index: 3; box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 35%, transparent), 0 2px 6px rgba(0,0,0,.3); transform: translate(-50%, -50%) scale(1.15); }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; border: 2px solid var(--brand); background: #fff; }
+  .legend i.v { background: var(--accent); border-color: var(--accent); }
+  .pinsheet:not(:empty) { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+  /* vendors */
+  .vsearch { margin: 10px 0 4px; }
+  .vend { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); align-items: flex-start; }
+  .vend:last-child { border-bottom: 0; }
+  .vlogo { width: 52px; height: 52px; flex: none; border-radius: 50%; border: 1.5px solid var(--line); background: #fff; display: grid; place-items: center; overflow: hidden; }
+  .vlogo img { width: 74%; height: 74%; object-fit: contain; }
+  .vlogo .logo-ph { width: 100%; height: 100%; font-size: .95rem; }
+  .vbody { flex: 1; min-width: 0; }
+  .vname { font-weight: 800; line-height: 1.25; }
+  .vmeta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .vbody p { margin: 6px 0 0; font-size: .88rem; color: var(--muted); }
+  .vlinks { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; font-size: .88rem; font-weight: 600; }
+  .vlinks a { text-decoration: none; }
+  .vlinks .linkbtn { padding: 0; font-size: .88rem; text-decoration: none; }
   .stamp.on .disc { border: 3px solid var(--accent); transform: rotate(-8deg); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent); }
   .stamp.on .disc img { filter: none; opacity: 1; }
   .stamp.on .disc .logo-ph { opacity: 1; background: color-mix(in srgb, var(--brand) 12%, #fff); }
@@ -106,10 +137,12 @@
     <p class="muted">This event isn't open right now. Check the link or QR code you used.</p>
   </section>
 
-  <section id="vSoon" class="hidden card" style="text-align:center">
+  <section id="vSoon" class="hidden"><div class="card" style="text-align:center">
     <div style="font-size:2.4rem">🎟️</div>
     <h2>Opening soon</h2>
     <p class="muted" id="soonText">The passport for this event isn't open yet. Check back when the event starts!</p>
+  </div>
+    <div id="soonMap" style="margin-top:14px"></div><div id="soonVendors" style="margin-top:14px"></div>
   </section>
 
   <div id="statusNote" class="card hidden" style="margin-bottom:14px;font-weight:600"></div>
@@ -145,8 +178,10 @@
   <!-- passport -->
   <section id="vPassport" class="hidden">
     <div class="tabs" role="tablist" id="tabs">
-      <button role="tab" aria-selected="true" data-tab="passport">My passport</button>
-      <button role="tab" aria-selected="false" data-tab="board" id="tabBoard">Leaderboard</button>
+      <button role="tab" aria-selected="true" data-tab="passport">Passport</button>
+      <button role="tab" aria-selected="false" data-tab="map" id="tabMap">Map</button>
+      <button role="tab" aria-selected="false" data-tab="vendors" id="tabVendors">Vendors</button>
+      <button role="tab" aria-selected="false" data-tab="board" id="tabBoard">Ranking</button>
     </div>
 
     <div id="pPassport">
@@ -168,6 +203,9 @@
       </div>
       <p class="foot small muted"><span id="whoami"></span> · <button class="linkbtn" id="signOut" type="button">Not you?</button></p>
     </div>
+
+    <div id="pMap" class="hidden"></div>
+    <div id="pVendors" class="hidden"></div>
 
     <div id="pBoard" class="hidden">
       <div class="card">
@@ -207,6 +245,87 @@
   const params = new URLSearchParams(location.search);
   let slug = (params.get("e") || "").toLowerCase();
   let ev = null, token = null, passport = null;
+
+  // --- floor plan & vendors ---
+  const ZOOMS = [1, 1.5, 2, 3, 4];
+  let mapZoom = 1, mapSel = null;
+  const visited = () => new Set(passport ? passport.stamps.map((x) => x.booth_id) : []);
+  const pinText = (b) => b.booth_number || initials(b.name);
+  const mapRoot = () => (ev.status === "ready" ? $("soonMap") : $("pMap"));
+  const vendorRoot = () => (ev.status === "ready" ? $("soonVendors") : $("pVendors"));
+
+  function vendorHtml(b, st, withMapLink) {
+    const img = b.logo_path ? `<img src="${logoUrl(b.logo_path)}" alt="" loading="lazy">` : `<div class="logo-ph">${esc(initials(b.name))}</div>`;
+    const web = P.safeUrl(b.website || "");
+    const onMap = withMapLink && ev.floorplan_path && b.map_x != null;
+    return `<div class="vend"><div class="vlogo">${img}</div><div class="vbody">
+      <div class="vname">${esc(b.name)}</div>
+      <div class="vmeta">${b.booth_number ? `<span class="pill brand">Booth ${esc(b.booth_number)}</span>` : ""}${passport ? (st.has(b.id) ? '<span class="pill ok">✓ Visited</span>' : '<span class="pill">Not visited yet</span>') : ""}</div>
+      ${b.description ? `<p>${esc(b.description)}</p>` : ""}
+      ${web || onMap ? `<div class="vlinks">${onMap ? `<button class="linkbtn" type="button" data-showmap="${b.id}">📍 Show on map</button>` : ""}${web ? `<a href="${esc(web)}" target="_blank" rel="noopener noreferrer">Website ↗</a>` : ""}</div>` : ""}
+    </div></div>`;
+  }
+
+  function mountMap(root) {
+    if (!ev.floorplan_path) { root.innerHTML = ""; return; }
+    root.innerHTML = `<div class="card"><div class="row"><h2 class="grow" style="font-size:1.05rem;margin:0">Floor plan</h2>
+        <button class="zb" type="button" data-mz="-1" aria-label="Zoom out">−</button><button class="zb" type="button" data-mz="1" aria-label="Zoom in">+</button></div>
+      <div class="mapview"><div class="mapinner" style="width:${mapZoom * 100}%"><img src="${esc(P.floorplanUrl(ev.floorplan_path))}" alt="Event floor plan" draggable="false"
+        ${ev.floorplan_w ? `width="${ev.floorplan_w}" height="${ev.floorplan_h}"` : ""}><div class="mpins"></div></div></div>
+      <div class="legend small muted">${passport ? '<span><i class="v"></i>Visited</span><span><i></i>Not visited yet</span>' : ""}<span>Tap a booth to see who's there.</span></div>
+      <div class="pinsheet" aria-live="polite"></div></div>`;
+    const view = root.querySelector(".mapview"), inner = root.querySelector(".mapinner");
+    root.querySelectorAll("[data-mz]").forEach((b) => (b.onclick = () => {
+      const cx = (view.scrollLeft + view.clientWidth / 2) / inner.offsetWidth, cy = (view.scrollTop + view.clientHeight / 2) / inner.offsetHeight;
+      const i = Math.max(0, Math.min(ZOOMS.length - 1, ZOOMS.indexOf(mapZoom) + Number(b.dataset.mz)));
+      mapZoom = ZOOMS[i]; inner.style.width = mapZoom * 100 + "%";
+      view.scrollLeft = cx * inner.offsetWidth - view.clientWidth / 2; view.scrollTop = cy * inner.offsetHeight - view.clientHeight / 2;
+    }));
+    drawPins(root);
+  }
+  function drawPins(root) {
+    if (!root || !root.querySelector(".mpins")) return;
+    const st = visited();
+    root.querySelector(".mpins").innerHTML = ev.booths.filter((b) => b.map_x != null).map((b) =>
+      `<button type="button" class="mpin ${st.has(b.id) ? "on" : ""} ${b.id === mapSel ? "sel" : ""}" data-b="${b.id}" style="left:${b.map_x * 100}%;top:${b.map_y * 100}%"
+        aria-label="${esc(b.name)}${b.booth_number ? ", booth " + esc(b.booth_number) : ""}${st.has(b.id) ? ", visited" : ""}">${esc(pinText(b))}</button>`).join("");
+    root.querySelectorAll(".mpin").forEach((p) => (p.onclick = () => { mapSel = mapSel === p.dataset.b ? null : p.dataset.b; drawPins(root); }));
+    const sel = ev.booths.find((b) => b.id === mapSel);
+    root.querySelector(".pinsheet").innerHTML = sel ? vendorHtml(sel, st, false) : "";
+  }
+  function focusPin(id) {
+    mapSel = id;
+    if (ev.status !== "ready") selectTab("map");
+    const root = mapRoot(); drawPins(root);
+    const view = root.querySelector(".mapview"), b = ev.booths.find((x) => x.id === id);
+    if (mapZoom < 2) { mapZoom = 2; root.querySelector(".mapinner").style.width = "200%"; }
+    requestAnimationFrame(() => {
+      const inner = root.querySelector(".mapinner");
+      view.scrollLeft = b.map_x * inner.offsetWidth - view.clientWidth / 2;
+      view.scrollTop = b.map_y * inner.offsetHeight - view.clientHeight / 2;
+      root.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
+  function mountVendors(root) {
+    const list = [...ev.booths].sort(P.boothSort);
+    if (!list.length) { root.innerHTML = '<div class="card"><p class="muted" style="margin:0">Vendors will be listed here soon.</p></div>'; return; }
+    root.innerHTML = `<div class="card"><div class="row"><h2 class="grow" style="font-size:1.05rem;margin:0">Participating vendors</h2><span class="pill">${list.length}</span></div>
+      ${list.length > 6 ? '<input class="vsearch" type="search" placeholder="Search by name or booth number" aria-label="Search vendors">' : ""}
+      <div class="vlist"></div></div>`;
+    const draw = () => {
+      const q = (root.querySelector(".vsearch") || {}).value?.trim().toLowerCase() || "", st = visited();
+      const rows = list.filter((b) => !q || `${b.name} ${b.booth_number || ""} ${b.description || ""}`.toLowerCase().includes(q));
+      root.querySelector(".vlist").innerHTML = rows.map((b) => vendorHtml(b, st, true)).join("") || '<p class="muted">No vendors match.</p>';
+      root.querySelectorAll("[data-showmap]").forEach((x) => (x.onclick = () => focusPin(x.dataset.showmap)));
+    };
+    const box = root.querySelector(".vsearch"); if (box) box.oninput = draw;
+    root._draw = draw; draw();
+  }
+  function refreshExplore() {
+    drawPins(mapRoot());
+    const v = vendorRoot(); if (v && v._draw) v._draw();
+  }
 
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
@@ -251,11 +370,17 @@
   $("evMeta").textContent = [fmtDate(ev.starts_on), ev.venue].filter(Boolean).join(" · ");
   if (ev.logo_path) { $("evLogo").src = logoUrl(ev.logo_path); $("evLogo").alt = ev.name; $("evLogo").classList.remove("hidden"); }
   if (ev.welcome_text) $("regIntro").textContent = ev.welcome_text;
-  if (!ev.show_leaderboard) $("tabs").classList.add("hidden");
+  if (!ev.show_leaderboard) $("tabBoard").classList.add("hidden");
+  if (!ev.floorplan_path) $("tabMap").classList.add("hidden");
 
   if (ev.status === "ready") {
     if (ev.starts_on) $("soonText").textContent = `The passport opens on ${fmtDate(ev.starts_on)}. Check back when the event starts!`;
-    show("vSoon"); return;
+    show("vSoon");
+    if (ev.booths.length || ev.floorplan_path) {
+      mountMap($("soonMap")); mountVendors($("soonVendors"));
+      if (ev.booths.length) $("soonText").textContent += " In the meantime, here's who you'll meet.";
+    }
+    return;
   }
   if (ev.status === "paused") $("statusNote").textContent = "⏸ Stamp collecting is paused for the moment. Your stamps are safe — check back soon.";
   if (ev.status === "completed") $("statusNote").textContent = "🏁 This event has ended. Thanks for playing — here are your final results.";
@@ -342,8 +467,9 @@
       const on = stamped.has(b.id);
       const img = b.logo_path ? `<img src="${logoUrl(b.logo_path)}" alt="" loading="lazy">` : `<div class="logo-ph">${esc(initials(b.name))}</div>`;
       return `<div class="stamp ${on ? "on" : ""}"><div class="disc">${img}${on ? '<span class="tick" aria-hidden="true">✓</span>' : ""}</div>
-        <div class="name">${esc(b.name)}</div><span class="hidden">${on ? "visited" : "not visited"}</span></div>`;
+        <div class="name">${esc(b.name)}${b.booth_number ? `<span class="num">Booth ${esc(b.booth_number)}</span>` : ""}</div><span class="hidden">${on ? "visited" : "not visited"}</span></div>`;
     }).join("");
+    refreshExplore();
   }
 
   async function openPassport() {
@@ -365,13 +491,18 @@
       : '<p class="muted">No stamps collected yet — be the first!</p>';
   }
 
-  document.querySelectorAll("#tabs button").forEach((b) => b.onclick = () => {
-    document.querySelectorAll("#tabs button").forEach((x) => x.setAttribute("aria-selected", x === b));
-    const board = b.dataset.tab === "board";
-    $("pPassport").classList.toggle("hidden", board);
-    $("pBoard").classList.toggle("hidden", !board);
-    if (board) loadBoard();
-  });
+  const PANELS = { passport: "pPassport", map: "pMap", vendors: "pVendors", board: "pBoard" };
+  let tab = "passport";
+  function selectTab(name) {
+    tab = name;
+    document.querySelectorAll("#tabs button").forEach((x) => x.setAttribute("aria-selected", x.dataset.tab === name));
+    Object.entries(PANELS).forEach(([k, id]) => $(id).classList.toggle("hidden", k !== name));
+    if (name === "board") loadBoard();
+    if (name === "map" && !$("pMap").firstChild) mountMap($("pMap"));
+    if (name === "vendors" && !$("pVendors").firstChild) mountVendors($("pVendors"));
+  }
+  document.querySelectorAll("#tabs button").forEach((b) => (b.onclick = () => selectTab(b.dataset.tab)));
+
 
   // --- claiming a stamp ---
   function codeFrom(text) {
@@ -399,7 +530,7 @@
     const img = b.logo_path ? `<img src="${logoUrl(b.logo_path)}" alt="">` : `<div class="logo-ph">${esc(initials(b.name))}</div>`;
     el.innerHTML = `<div class="box" role="dialog" aria-live="polite"><div class="big">${img}</div>
       ${isNew ? `<div class="plus">+${b.points} point${b.points === 1 ? "" : "s"}</div><h2>Stamp collected!</h2>` : "<h2>Already stamped</h2>"}
-      <p class="muted">${esc(b.name)}</p><button class="btn block" type="button">Keep exploring</button></div>`;
+      <p class="muted">${esc(b.name)}${b.booth_number ? " · Booth " + esc(b.booth_number) : ""}</p><button class="btn block" type="button">Keep exploring</button></div>`;
     document.body.appendChild(el);
     el.querySelector("button").onclick = () => el.remove();
     el.onclick = (e) => { if (e.target === el) el.remove(); };

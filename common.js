@@ -10,6 +10,14 @@
 
   const logoUrl = (path) =>
     path ? `${C.SUPABASE_URL}/storage/v1/object/public/logos/${path.split("/").map(encodeURIComponent).join("/")}` : "";
+  const floorplanUrl = (path) =>
+    path ? `${C.SUPABASE_URL}/storage/v1/object/public/floorplans/${path.split("/").map(encodeURIComponent).join("/")}` : "";
+  // only ever link to http(s) addresses
+  const safeUrl = (u) => { try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : ""; } catch (e) { return ""; } };
+  const boothSort = (a, b) =>
+    (a.booth_number ? 0 : 1) - (b.booth_number ? 0 : 1) ||
+    String(a.booth_number || "").localeCompare(String(b.booth_number || ""), undefined, { numeric: true, sensitivity: "base" }) ||
+    a.name.localeCompare(b.name);
 
   const initials = (name) =>
     String(name || "?").split(/\s+/).map((w) => (w.match(/[\p{L}\p{N}]/u) || [""])[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?";
@@ -69,5 +77,5 @@
   const orgLogoTag = (cls = "", style = "") =>
     orgLogoUrl ? `<img class="${cls}" style="${style}" src="${orgLogoUrl}" alt="${esc(C.ORG_NAME)}" onerror="this.remove()">` : "";
 
-  window.P = { sb, esc, logoUrl, initials, applyTheme, toast, appBaseUrl, joinUrl, boothUrl, qrSvg, qrDataUrl, fmtDate, orgLogoUrl, orgLogoTag, C };
+  window.P = { sb, esc, logoUrl, floorplanUrl, safeUrl, boothSort, initials, applyTheme, toast, appBaseUrl, joinUrl, boothUrl, qrSvg, qrDataUrl, fmtDate, orgLogoUrl, orgLogoTag, C };
 })();
