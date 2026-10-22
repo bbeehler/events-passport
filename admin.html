@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=2026.10.22b">
 <style>
   .auth { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: var(--brand); }
   .auth .card { width: min(420px, 100%); padding: 28px; }
@@ -215,8 +215,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
-<script src="config.js"></script>
-<script src="common.js"></script>
+<script src="config.js?v=2026.10.22b"></script>
+<script src="common.js?v=2026.10.22b"></script>
 <script>
 (async function () {
   const { sb, esc, logoUrl, floorplanUrl, safeUrl, boothSort, initials, applyTheme, toast, joinUrl, boothUrl, qrSvg, qrDataUrl, fmtDate, appBaseUrl } = P;
@@ -405,7 +405,13 @@
       $("firstEv").onclick = () => eventModal(null);
       return;
     }
-    ({ events: pEvents, dashboard: pDashboard, booths: pBooths, floorplan: pFloorplan, attendees: pAttendees, winners: pWinners, reports: pReports, settings: pSettings, admins: pAdmins })[page]();
+    const show = ({ events: pEvents, dashboard: pDashboard, booths: pBooths, floorplan: pFloorplan, attendees: pAttendees, winners: pWinners, reports: pReports, settings: pSettings, admins: pAdmins })[page];
+    // never leave a page stuck on "Loading…": show what went wrong and a way out
+    Promise.resolve().then(show).catch((err) => {
+      console.error(err);
+      $("page").innerHTML = `<div class="card empty"><h2>This page couldn't load</h2><p class="muted">${esc((err && err.message) || err)}</p>
+        <p class="small muted">If you just updated the app, a refresh usually fixes this.</p><button class="btn" type="button" onclick="location.reload()">Reload page</button></div>`;
+    });
   }
 
   // ---------- event create / edit ----------
@@ -1410,7 +1416,15 @@
   }
 
   boot();
-})();
+})().catch((err) => {
+  console.error(err);
+  const box = document.createElement("div");
+  box.className = "card"; box.setAttribute("role", "alert");
+  box.style.cssText = "max-width:520px;margin:24px auto;text-align:center";
+  box.innerHTML = '<h2>Something went wrong</h2><p class="muted"></p><button class="btn" type="button" onclick="location.reload()">Reload page</button>';
+  box.querySelector("p").textContent = (err && err.message) || String(err);
+  (document.getElementById("page") || document.querySelector("main") || document.body).replaceChildren(box);
+});
 </script>
 </body>
 </html>

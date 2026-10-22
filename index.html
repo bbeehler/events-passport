@@ -7,7 +7,7 @@
 <title>Event Passport</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=2026.10.22b">
 <style>
   body { min-height: 100vh; padding-bottom: 110px; }
   .hero { background: var(--brand); color: #fff; padding: 22px 18px 64px; position: relative; overflow: hidden; }
@@ -235,8 +235,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.js"></script>
-<script src="config.js"></script>
-<script src="common.js"></script>
+<script src="config.js?v=2026.10.22b"></script>
+<script src="common.js?v=2026.10.22b"></script>
 <script>
 (async function () {
   const { sb, esc, logoUrl, initials, applyTheme, toast, fmtDate } = P;
@@ -589,7 +589,15 @@
   // --- start ---
   if (token) await openPassport();
   else show("vRegister");
-})();
+})().catch((err) => {
+  console.error(err);
+  const box = document.createElement("div");
+  box.className = "card"; box.setAttribute("role", "alert");
+  box.style.cssText = "max-width:520px;margin:24px auto;text-align:center";
+  box.innerHTML = '<h2>Something went wrong</h2><p class="muted"></p><button class="btn" type="button" onclick="location.reload()">Reload page</button>';
+  box.querySelector("p").textContent = (err && err.message) || String(err);
+  (document.getElementById("page") || document.querySelector("main") || document.body).replaceChildren(box);
+});
 </script>
 </body>
 </html>

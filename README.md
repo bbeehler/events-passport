@@ -115,3 +115,7 @@ Change status from the Dashboard, Event settings, or **All events**.
 - **Security of codes:** each printed QR is a permanent code. If a code leaks (e.g. shared in a group chat), use **Edit → Generate new QR code**
   and reprint that card.
 - **Costs:** Supabase handles thousands of attendees on the current plan. Logos are limited to 2 MB each.
+
+## Publishing updates
+
+The pages load `styles.css`, `config.js` and `common.js` with a version tag (`?v=2026.10.22b`). When you change any of those files, bump that tag in all three HTML pages (and `VERSION` in `common.js`) so browsers fetch the new copy instead of an older cached one.

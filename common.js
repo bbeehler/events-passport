@@ -77,5 +77,6 @@
   const orgLogoTag = (cls = "", style = "") =>
     orgLogoUrl ? `<img class="${cls}" style="${style}" src="${orgLogoUrl}" alt="${esc(C.ORG_NAME)}" onerror="this.remove()">` : "";
 
-  window.P = { sb, esc, logoUrl, floorplanUrl, safeUrl, boothSort, initials, applyTheme, toast, appBaseUrl, joinUrl, boothUrl, qrSvg, qrDataUrl, fmtDate, orgLogoUrl, orgLogoTag, C };
+  const VERSION = "2026.10.22b"; // keep in step with the ?v= on the <script>/<link> tags
+  window.P = { VERSION, sb, esc, logoUrl, floorplanUrl, safeUrl, boothSort, initials, applyTheme, toast, appBaseUrl, joinUrl, boothUrl, qrSvg, qrDataUrl, fmtDate, orgLogoUrl, orgLogoTag, C };
 })();
